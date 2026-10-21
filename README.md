@@ -25,6 +25,11 @@ Our goal is simple: make AI more accessible to build with, experiment with, and 
 
 dgAI is an evolving ecosystem, we are currently on our Converse series and are actually shipping things as fast as possible.
 
+## What this repo contains
+This repo has the code for our open weights which you can self host. Till now, there is only one model family available: Converse Family
+
+Check out the blog about it: https://dg-ai-blue.vercel.app/introducing-converse
+
 ## 🤝 Contributing
 
 Interested in dgAI? You can help by:
