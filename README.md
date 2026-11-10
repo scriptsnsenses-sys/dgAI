@@ -1,6 +1,5 @@
 # dgAI
 ![Official GitHub Repository](https://img.shields.io/badge/Official-GitHub%20Repository-D4AF37?style=for-the-badge&labelColor=000000&logo=github&logoColor=white)
-![Open Source](https://img.shields.io/badge/Open-Source-00C853?style=for-the-badge&labelColor=000000&logo=opensourceinitiative&logoColor=white)
 
 ### Building AI. Making it accessible.
 
