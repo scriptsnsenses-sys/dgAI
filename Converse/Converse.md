@@ -1,4 +1,5 @@
 # Converse
+![Open Source](https://img.shields.io/badge/Open-Source-00C853?style=for-the-badge&labelColor=000000&logo=opensourceinitiative&logoColor=white)
 Converse is a lightwieght open family of models developed by dgAI. The goal of these models is to deliver high quality conversations with users at low cost. Converse models use DG Dual Engine (Signature Version).
 
 ## Goal
