@@ -3,37 +3,194 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#10110f">
+  <meta name="theme-color" content="#fbfbfa">
   <meta name="description" content="A thoughtful space to think, make, and explore with Converse 1.3 by dgAI.">
-  <title>Converse — dgAI</title>
+  <title>dgAI — Converse</title>
   <style>
-    :root{color-scheme:dark;--bg:#10110f;--panel:#151714;--panel2:#1c1e1a;--line:#292b26;--muted:#92958c;--text:#f2f1e9;--gold:#e5b968;--gold2:#f0cb82;--green:#a6c38d;--sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 var(--sans);min-height:100vh}button,textarea{font:inherit}button{color:inherit}.app{min-height:100vh;display:grid;grid-template-columns:260px minmax(0,1fr)}
-    .sidebar{height:100vh;position:sticky;top:0;background:#131411;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:23px 15px 16px}
-    .brand{display:flex;align-items:center;gap:11px;padding:0 10px 24px}.brand-mark{width:33px;height:33px;border:1px solid #73603d;border-radius:11px;display:grid;place-items:center;color:var(--gold);background:linear-gradient(145deg,#282319,#191813)}.brand-mark svg{width:19px}.brand-name{font-weight:650;font-size:15px;letter-spacing:-.03em}.brand-name small{display:block;color:var(--muted);font-size:10px;font-weight:500;letter-spacing:.13em;text-transform:uppercase}
-    .new-chat{display:flex;align-items:center;justify-content:center;gap:9px;height:41px;border-radius:9px;background:var(--gold);color:#211b10;border:0;font-weight:650;cursor:pointer;transition:background .18s,transform .18s}.new-chat:hover{background:var(--gold2);transform:translateY(-1px)}.new-chat svg{width:16px}
-    .side-label{margin:29px 11px 10px;color:#777a70;font-size:10px;font-weight:650;letter-spacing:.12em;text-transform:uppercase}.history{display:flex;flex-direction:column;gap:3px}.history-item{padding:9px 10px;border:0;border-radius:7px;background:transparent;color:#c0c1ba;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.history-item:hover,.history-item.active{background:#20211d;color:#f2f1e9}.history-empty{color:#777a70;font-size:12px;padding:6px 11px}.side-bottom{margin-top:auto}.side-link{display:flex;gap:10px;align-items:center;text-decoration:none;color:#b8b9b1;padding:10px;border-radius:7px}.side-link:hover{background:#20211d;color:white}.side-link svg{width:16px;color:#92958c}.profile{border-top:1px solid var(--line);margin-top:13px;padding:16px 7px 3px;display:flex;align-items:center;gap:10px}.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#343328;color:var(--gold2);font-size:12px;font-weight:700}.profile strong{font-size:12px;display:block}.profile small{color:var(--muted);font-size:11px}
-    main{min-width:0;display:flex;flex-direction:column;height:100vh}.topbar{height:65px;border-bottom:1px solid rgba(255,255,255,.055);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,60px)}.model-select{display:flex;align-items:center;gap:8px;color:#e2e0d8;font-weight:600}.model-select .version{font-size:11px;color:#85877f;font-weight:500}.status{display:flex;align-items:center;gap:8px;color:#adb0a7;font-size:12px}.status-dot{width:7px;height:7px;border-radius:50%;background:#a6c38d;box-shadow:0 0 11px #a6c38d70}
-    .conversation{flex:1;overflow-y:auto;scrollbar-color:#353730 transparent}.content{max-width:780px;width:calc(100% - 48px);margin:0 auto}.welcome{min-height:100%;display:flex;flex-direction:column;justify-content:center;padding:35px 0 70px}.eyebrow{display:flex;align-items:center;gap:9px;color:var(--gold);font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase}.eyebrow:before{content:"";width:21px;height:1px;background:var(--gold)}h1{font-size:clamp(34px,5vw,51px);line-height:1.07;letter-spacing:-.055em;font-weight:550;margin:21px 0 13px}.welcome-copy{font-size:15px;color:#a8aaa2;max-width:490px;margin:0 0 37px}.prompt-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.prompt{min-height:85px;text-align:left;background:#171814;border:1px solid #292b25;border-radius:11px;padding:15px 16px;cursor:pointer;transition:.18s}.prompt:hover{border-color:#6b5938;background:#1b1a15;transform:translateY(-2px)}.prompt strong{font-size:13px;display:block;font-weight:550;margin-bottom:5px}.prompt span{font-size:12px;color:#85877e}
-    .messages{padding:43px 0 35px;display:flex;flex-direction:column;gap:29px}.message{display:flex;gap:13px;align-items:flex-start}.message .avatar{flex:0 0 29px;width:29px;height:29px;font-size:10px}.message.assistant .avatar{border-radius:9px;background:#282319;color:var(--gold)}.message-body{min-width:0;flex:1;padding-top:3px}.message-role{font-size:11px;color:#85877f;font-weight:600;margin-bottom:7px}.message-text{font-size:14px;line-height:1.75;color:#e8e7df;overflow-wrap:anywhere;white-space:pre-wrap}.message.user .message-text{color:#c9cac2}.message-text code{background:#272822;padding:2px 5px;border-radius:4px;color:#e5c785;font-family:ui-monospace,monospace;font-size:.92em}.message-text strong{color:#f5e1b5}.message-actions{display:flex;gap:6px;margin-top:8px}.icon-btn{width:29px;height:27px;border:0;background:transparent;border-radius:6px;color:#777a70;cursor:pointer}.icon-btn:hover{color:#e4e3db;background:#23241f}.error-note{color:#e49b85}
-    .composer-wrap{padding:12px 24px 17px;background:linear-gradient(transparent,var(--bg) 20%)}.composer-area{max-width:780px;margin:0 auto}.composer{background:#191a16;border:1px solid #33352e;border-radius:13px;padding:12px 12px 10px;box-shadow:0 9px 35px #00000028;transition:border-color .2s}.composer:focus-within{border-color:#655537}.composer textarea{width:100%;min-height:28px;max-height:180px;resize:none;border:0;outline:0;background:transparent;color:var(--text);padding:3px 4px;font-size:14px;line-height:1.55}.composer textarea::placeholder{color:#777a70}.composer-bottom{display:flex;align-items:center;justify-content:space-between;padding:4px 1px 0}.composer-hint{font-size:10px;color:#75776f}.send{height:34px;width:36px;border:0;border-radius:8px;display:grid;place-items:center;background:var(--gold);color:#211b10;cursor:pointer}.send:hover{background:var(--gold2)}.send:disabled{opacity:.42;cursor:default}.send svg{width:17px}.fineprint{text-align:center;color:#696c64;font-size:10px;margin-top:10px}.mobile-menu{display:none}
-    @media(max-width:760px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{height:58px;padding:0 18px}.mobile-menu{display:grid;place-items:center;border:0;background:none;color:#aaa;width:30px}.mobile-menu svg{width:20px}.status{font-size:0}.status-dot{width:8px;height:8px}.content{width:calc(100% - 36px)}.welcome{padding:36px 0 50px;justify-content:center}.prompt-grid{grid-template-columns:1fr}.prompt{min-height:72px}.welcome-copy{font-size:14px}.composer-wrap{padding:10px 13px 13px}.messages{padding-top:27px}}
+    :root {
+      color-scheme: light;
+      --paper: #fbfbfa;
+      --rail: #f5f5f3;
+      --surface: #fff;
+      --surface-hover: #efefed;
+      --line: #e8e8e5;
+      --line-strong: #d7d7d3;
+      --ink: #292a2b;
+      --muted: #8c8d8d;
+      --soft-ink: #5d5e5e;
+      --shadow: 0 16px 48px #2020200b, 0 2px 8px #20202008;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.55 var(--sans); }
+    button, textarea { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px solid #737576; outline-offset: 3px; }
+    .app { display: grid; grid-template-columns: 258px minmax(0, 1fr); min-height: 100vh; }
+
+    .sidebar { position: sticky; top: 0; display: flex; height: 100vh; flex-direction: column; padding: 21px 14px 14px; border-right: 1px solid var(--line); background: var(--rail); }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 2px 8px 22px; }
+    .brand-symbol { display: grid; width: 29px; height: 29px; place-items: center; border: 1px solid #d5d5d2; border-radius: 50%; color: #333; font-size: 15px; font-weight: 500; letter-spacing: -.12em; padding-right: 2px; }
+    .brand-name { font-size: 14px; font-weight: 650; letter-spacing: -.045em; }
+    .brand-name small { display: block; margin-top: 1px; color: var(--muted); font-size: 9px; font-weight: 550; letter-spacing: .12em; text-transform: uppercase; }
+    .new-chat { display: flex; height: 42px; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: #303132; font-weight: 570; cursor: pointer; transition: background .16s, border-color .16s, transform .16s; }
+    .new-chat:hover { transform: translateY(-1px); border-color: #bdbdb9; background: #fff; }
+    .new-chat svg { width: 16px; height: 16px; }
+    .section-label { margin: 28px 9px 9px; color: #898a89; font-size: 10px; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; }
+    .history { display: flex; min-height: 0; flex-direction: column; gap: 3px; overflow-y: auto; }
+    .history-empty { padding: 8px 9px; color: var(--muted); font-size: 12px; }
+    .history-row { display: flex; min-width: 0; align-items: center; gap: 3px; padding: 2px 4px 2px 9px; border: 1px solid transparent; border-radius: 7px; color: #585959; transition: background .15s, border-color .15s; }
+    .history-row:hover { background: #ececea; }
+    .history-row.active { border-color: #e5e5e2; background: #fff; color: #2e2f30; }
+    .history-select { min-width: 0; flex: 1; overflow: hidden; padding: 6px 0; border: 0; background: none; color: inherit; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+    .delete-chat { display: grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #888; opacity: 0; cursor: pointer; transition: background .15s, color .15s, opacity .15s; }
+    .history-row:hover .delete-chat, .delete-chat:focus-visible { opacity: 1; }
+    .delete-chat:hover { background: #e5e5e3; color: #292a2b; }
+    .delete-chat svg { width: 15px; height: 15px; }
+    .sidebar-bottom { margin-top: auto; padding-top: 12px; }
+    .side-link { display: flex; align-items: center; gap: 9px; padding: 9px; border-radius: 7px; color: #686969; text-decoration: none; font-size: 12px; }
+    .side-link:hover { background: #ececea; color: var(--ink); }
+    .side-link svg { width: 16px; height: 16px; color: #797a7a; }
+    .rail-caption { padding: 12px 9px 2px; color: #999a99; font-size: 10px; }
+
+    main { display: flex; min-width: 0; height: 100vh; flex-direction: column; }
+    .topbar { z-index: 1; display: flex; height: 59px; flex: 0 0 59px; align-items: center; justify-content: space-between; padding: 0 clamp(20px, 4vw, 58px); border-bottom: 1px solid #ededeb; background: #fbfbfaf2; }
+    .topbar-left, .topbar-right { display: flex; align-items: center; gap: 11px; }
+    .mobile-menu { display: none; width: 32px; height: 32px; place-items: center; border: 0; border-radius: 7px; background: transparent; color: #555; cursor: pointer; }
+    .mobile-menu:hover { background: var(--surface-hover); }
+    .mobile-menu svg { width: 19px; height: 19px; }
+    .model-label { color: #444546; font-size: 12px; font-weight: 600; letter-spacing: -.01em; }
+    .model-version { margin-left: 4px; color: #999a99; font-size: 11px; font-weight: 450; }
+    .status { display: flex; align-items: center; gap: 7px; color: #838484; font-size: 11px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #aaa; }
+    .status-dot.ready { background: #656767; }
+    .status-dot.loading { background: #aaa; animation: pulse 1.5s ease-in-out infinite; }
+    .docs-link { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid transparent; border-radius: 7px; color: #777; }
+    .docs-link:hover { border-color: var(--line); background: #fff; color: #333; }
+    .docs-link svg { width: 17px; height: 17px; }
+
+    .conversation { position: relative; display: flex; min-height: 0; flex: 1; flex-direction: column; overflow-y: auto; scrollbar-color: #d3d3d0 transparent; }
+    .content { width: min(760px, calc(100% - 48px)); min-height: 100%; margin: 0 auto; }
+    .welcome { display: flex; min-height: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0 108px; }
+    .hero-logo { display: block; width: min(234px, 58vw); height: auto; overflow: visible; }
+    .logo-orbit { fill: none; stroke: #777879; stroke-linecap: round; }
+    .logo-word { fill: #292a2b; font-family: Arial, Helvetica, sans-serif; font-size: 57px; font-weight: 500; letter-spacing: -5.3px; }
+    .hero-caption { margin: 13px 0 0; color: #969797; font-size: 11px; letter-spacing: .08em; }
+    .messages { display: flex; flex-direction: column; gap: 28px; padding: 44px 0 38px; }
+    .message { display: flex; align-items: flex-start; gap: 13px; }
+    .message.user { justify-content: flex-end; }
+    .message-body { min-width: 0; max-width: 88%; padding-top: 2px; }
+    .message.user .message-body { max-width: min(82%, 580px); padding: 11px 15px; border: 1px solid #ededeb; border-radius: 15px 15px 4px 15px; background: #f1f1ef; }
+    .message-role { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; color: #8c8d8d; font-size: 10px; font-weight: 600; letter-spacing: .02em; }
+    .message.assistant .message-role { color: #68696a; }
+    .mini-mark { display: grid; width: 18px; height: 18px; place-items: center; border: 1px solid #dededb; border-radius: 50%; color: #454647; font-size: 9px; letter-spacing: -.1em; padding-right: 1px; }
+    .message-text { overflow-wrap: anywhere; color: #414243; font-size: 14px; line-height: 1.8; white-space: pre-wrap; }
+    .message.user .message-text { color: #363738; line-height: 1.65; }
+    .message-text code { padding: 2px 5px; border: 1px solid #e8e8e5; border-radius: 4px; background: #f4f4f2; color: #38393a; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .9em; }
+    .message-text strong { color: #292a2b; font-weight: 650; }
+    .message-actions { display: flex; gap: 4px; margin-top: 8px; }
+    .icon-btn { display: grid; width: 28px; height: 27px; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #8c8d8d; cursor: pointer; }
+    .icon-btn:hover { background: #f0f0ee; color: #333; }
+    .icon-btn svg { width: 15px; height: 15px; }
+
+    .composer-wrap { z-index: 2; padding: 12px 24px 17px; background: linear-gradient(transparent, var(--paper) 22%); }
+    .composer-area { width: min(760px, 100%); margin: 0 auto; }
+    .composer { padding: 12px 13px 9px; border: 1px solid #ddddda; border-radius: 15px; background: var(--surface); box-shadow: var(--shadow); transition: border-color .18s, box-shadow .18s, transform .18s; }
+    .composer:focus-within { transform: translateY(-1px); border-color: #b9b9b5; box-shadow: 0 18px 50px #20202010, 0 2px 10px #2020200a; }
+    .composer textarea { display: block; width: 100%; min-height: 29px; max-height: 180px; resize: none; padding: 3px 4px; border: 0; outline: 0; background: transparent; color: #343536; font-size: 14px; line-height: 1.55; }
+    .composer textarea::placeholder { color: #a0a1a0; }
+    .composer-bottom { display: flex; align-items: center; justify-content: space-between; padding: 5px 1px 0; }
+    .composer-hint { color: #a1a2a1; font-size: 10px; }
+    .send { display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 10px; background: #303132; color: #fff; cursor: pointer; transition: background .15s, transform .15s; }
+    .send:hover { transform: translateY(-1px); background: #171819; }
+    .send:disabled { opacity: .38; cursor: default; transform: none; }
+    .send svg { width: 16px; height: 16px; }
+    .fineprint { margin-top: 8px; color: #a1a2a1; font-size: 10px; text-align: center; }
+    .mobile-overlay { display: none; }
+    @keyframes pulse { 50% { opacity: .35; } }
+
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { z-index: 5; position: fixed; top: 0; bottom: 0; left: 0; width: min(290px, 84vw); height: 100dvh; transform: translateX(-102%); transition: transform .22s ease; box-shadow: 12px 0 40px #0000000c; }
+      .sidebar.open { transform: translateX(0); }
+      .delete-chat { opacity: 1; }
+      .mobile-overlay { z-index: 4; position: fixed; inset: 0; background: #20202055; opacity: 0; pointer-events: none; transition: opacity .2s; }
+      .mobile-overlay.open { display: block; opacity: 1; pointer-events: auto; }
+      .topbar { height: 55px; flex-basis: 55px; padding: 0 15px; }
+      .mobile-menu { display: grid; }
+      .content { width: calc(100% - 34px); }
+      .welcome { padding: 15px 0 91px; }
+      .hero-logo { width: min(204px, 57vw); }
+      .hero-caption { margin-top: 11px; font-size: 10px; }
+      .messages { gap: 23px; padding: 28px 0 30px; }
+      .message-body { max-width: 92%; }
+      .message.user .message-body { max-width: 88%; }
+      .composer-wrap { padding: 9px 12px 12px; }
+      .composer { border-radius: 13px; }
+      .composer-hint { font-size: 9px; }
+      .status { font-size: 0; }
+      .status-dot { width: 7px; height: 7px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
   </style>
 </head>
 <body>
   <div class="app">
-    <aside class="sidebar">
-      <div class="brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2.8 14.7 9l6.5 3-6.5 3-2.7 6.2L9.3 15 2.8 12l6.5-3L12 2.8Z"/><path d="m18.7 2 .8 2.3 2.3.8-2.3.8-.8 2.3-.8-2.3-2.3-.8 2.3-.8.8-2.3Z"/></svg></div><div class="brand-name">dgAI<small>Converse 1.3</small></div></div>
-      <button class="new-chat" id="newChat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>New conversation</button>
-      <div class="side-label">Your conversations</div><div class="history" id="history"></div>
-      <div class="side-bottom"><a class="side-link" href="/docs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3.8h9l5 5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4.8a1 1 0 0 1 1-1Z"/><path d="M14 4v5h5M8 13h8M8 17h8"/></svg>API &amp; usage docs</a>
-        <div class="profile"><div class="avatar">D</div><div><strong>Converse 1.3</strong><small>dgAI · public beta</small></div></div>
+    <aside class="sidebar" id="sidebar" aria-label="Conversation navigation">
+      <a class="brand" href="/" aria-label="dgAI home">
+        <span class="brand-symbol">dg</span>
+        <span class="brand-name">dgAI<small>Converse 1.3</small></span>
+      </a>
+      <button class="new-chat" id="newChat" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        New conversation
+      </button>
+      <div class="section-label">Recent conversations</div>
+      <div class="history" id="history"></div>
+      <div class="sidebar-bottom">
+        <a class="side-link" href="/docs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 3.8h9l5 5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4.8a1 1 0 0 1 1-1Z"/><path d="M14 4v5h5M8 13h8M8 17h8"/></svg>
+          API &amp; usage
+        </a>
+        <div class="rail-caption">A little more human.</div>
       </div>
     </aside>
+    <button class="mobile-overlay" id="mobileOverlay" type="button" aria-label="Close conversation menu"></button>
     <main>
-      <header class="topbar"><button class="mobile-menu" id="mobileNew" aria-label="New conversation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button><div class="model-select">Converse <span class="version">1.3</span></div><div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Checking model</span></div></header>
-      <section class="conversation" id="conversation" aria-live="polite"><div class="content" id="content"></div></section>
-      <div class="composer-wrap"><div class="composer-area"><form class="composer" id="chatForm"><textarea id="input" rows="1" placeholder="Ask Converse anything..." aria-label="Message Converse"></textarea><div class="composer-bottom"><span class="composer-hint">Enter to send · Shift + Enter for a new line</span><button class="send" id="send" type="submit" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></form><div class="fineprint">Converse can make mistakes. Check important information.</div></div></div>
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Open conversations">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+          <div class="model-label">Converse<span class="model-version">1.3</span></div>
+        </div>
+        <div class="topbar-right">
+          <div class="status" aria-live="polite"><span class="status-dot loading" id="statusDot"></span><span id="statusText">Connecting</span></div>
+          <a class="docs-link" href="/docs" aria-label="API and usage documentation" title="API and usage">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 3.8h9l5 5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4.8a1 1 0 0 1 1-1Z"/><path d="M14 4v5h5M8 13h8M8 17h6"/></svg>
+          </a>
+        </div>
+      </header>
+      <section class="conversation" id="conversation" aria-live="polite">
+        <div class="content" id="content"></div>
+      </section>
+      <div class="composer-wrap">
+        <div class="composer-area">
+          <form class="composer" id="chatForm">
+            <textarea id="input" rows="1" placeholder="Message dgAI..." aria-label="Message dgAI"></textarea>
+            <div class="composer-bottom">
+              <span class="composer-hint">Enter to send · Shift + Enter for a new line</span>
+              <button class="send" id="send" type="submit" aria-label="Send message" title="Send">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg>
+              </button>
+            </div>
+          </form>
+          <div class="fineprint">Converse can make mistakes. Check important information.</div>
+        </div>
+      </div>
     </main>
   </div>
 <script>
@@ -41,48 +198,208 @@
   const input = document.querySelector("#input");
   const send = document.querySelector("#send");
   const historyEl = document.querySelector("#history");
+  const sidebar = document.querySelector("#sidebar");
+  const mobileOverlay = document.querySelector("#mobileOverlay");
   const STORAGE_KEY = "dgai-converse-sessions-v1";
   let sessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   let activeId = null;
   let busy = false;
-  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const format = (s) => esc(s).replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
-  function persist(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(sessions)); renderHistory(); }
-  function current(){ return sessions.find(s=>s.id===activeId); }
-  function welcome(){
-    content.innerHTML = `<div class="welcome"><div class="eyebrow">A little more human</div><h1>Good ideas start<br>with a conversation.</h1><p class="welcome-copy">I'm Converse, dgAI's open conversational model. Bring a question, a half-formed thought, or something you want to make.</p><div class="prompt-grid"><button class="prompt" data-prompt="Help me turn a rough idea into a clear, practical plan."><strong>Make a plan</strong><span>Turn a rough idea into thoughtful next steps</span></button><button class="prompt" data-prompt="Explain a tricky concept clearly, with a useful example."><strong>Understand something</strong><span>Get a clear explanation without the jargon</span></button><button class="prompt" data-prompt="Help me write a warm, concise message about..."><strong>Find the right words</strong><span>Shape a message, story, or first draft</span></button><button class="prompt" data-prompt="I want to build something useful. Help me brainstorm ideas."><strong>Explore an idea</strong><span>Brainstorm possibilities and see where they lead</span></button></div></div>`;
-    content.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{input.value=b.dataset.prompt;input.focus();resizeInput();});
-  }
-  function renderHistory(){
-    historyEl.innerHTML = sessions.length ? sessions.slice(0,12).map(s=>`<button class="history-item ${s.id===activeId?"active":""}" data-id="${esc(s.id)}">${esc(s.title||"New conversation")}</button>`).join("") : '<div class="history-empty">Your chats will show up here.</div>';
-    historyEl.querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>{activeId=b.dataset.id;render();});
-  }
-  function render(){
-    const session=current();
-    if(!session||!session.messages.length){welcome();renderHistory();return;}
-    content.innerHTML = `<div class="messages">${session.messages.map((m,i)=>`<article class="message ${m.role}"><div class="avatar">${m.role==="user"?"Y":'<svg width="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3 2.4 5.8L20 12l-5.6 2.8L12 21l-2.4-6.2L4 12l5.6-3.2L12 3Z"/></svg>'}</div><div class="message-body"><div class="message-role">${m.role==="user"?"You":"Converse"}</div><div class="message-text">${format(m.content)}</div>${m.role==="assistant"?`<div class="message-actions"><button class="icon-btn copy" data-index="${i}" title="Copy response" aria-label="Copy response">⧉</button></div>`:""}</div></article>`).join("")}</div>`;
-    content.querySelectorAll(".copy").forEach(b=>b.onclick=()=>navigator.clipboard.writeText(session.messages[Number(b.dataset.index)].content));
+
+  const esc = (value) => String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[char]));
+  const format = (value) => esc(value)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  const current = () => sessions.find(session => session.id === activeId);
+
+  function persist() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
     renderHistory();
-    document.querySelector("#conversation").scrollTop=document.querySelector("#conversation").scrollHeight;
   }
-  function resizeInput(){input.style.height="auto";input.style.height=Math.min(input.scrollHeight,180)+"px";}
-  document.querySelector("#newChat").onclick=document.querySelector("#mobileNew").onclick=()=>{activeId=null;render();input.focus();};
-  input.addEventListener("input",resizeInput);
-  input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();document.querySelector("#chatForm").requestSubmit();}});
-  document.querySelector("#chatForm").addEventListener("submit",async e=>{
-    e.preventDefault();const text=input.value.trim();if(!text||busy)return;
-    if(!current()){activeId=crypto.randomUUID();sessions.unshift({id:activeId,title:text.slice(0,42),messages:[]});}
-    const session=current();session.messages.push({role:"user",content:text});input.value="";resizeInput();busy=true;send.disabled=true;
-    session.messages.push({role:"assistant",content:""});const reply=session.messages.at(-1);render();reply.content="Thinking…";render();
-    try{
-      const response=await fetch("/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"converse-1.3",messages:session.messages.slice(0,-1).map(m=>({role:m.role,content:m.content})),max_tokens:512})});
-      const data=await response.json();if(!response.ok)throw new Error(data.error?.message||"The model is not available yet.");
-      reply.content=data.choices?.[0]?.message?.content||"I couldn't produce a response. Please try again.";
-    }catch(error){reply.content=error.message;reply.error=true;}
-    finally{busy=false;send.disabled=false;persist();render();input.focus();}
+
+  function renderWelcome() {
+    content.innerHTML = `
+      <div class="welcome">
+        <svg class="hero-logo" viewBox="0 0 220 130" role="img" aria-label="dgAI">
+          <path class="logo-orbit" stroke-width="3.5" d="M26 50C53 7 125-4 170 27M185 44c19 39-2 72-48 83-20 5-40 5-56-1"/>
+          <circle cx="181" cy="35" r="7.5" fill="#343536"/>
+          <text class="logo-word" x="23" y="88">dgAI</text>
+        </svg>
+        <p class="hero-caption">Converse 1.3</p>
+      </div>`;
+  }
+
+  function renderHistory() {
+    historyEl.replaceChildren();
+    if (!sessions.length) {
+      const empty = document.createElement("div");
+      empty.className = "history-empty";
+      empty.textContent = "Your conversations will appear here.";
+      historyEl.append(empty);
+      return;
+    }
+
+    sessions.slice(0, 30).forEach(session => {
+      const row = document.createElement("div");
+      row.className = `history-row${session.id === activeId ? " active" : ""}`;
+
+      const select = document.createElement("button");
+      select.className = "history-select";
+      select.type = "button";
+      select.dataset.chatId = session.id;
+      select.textContent = session.title || "New conversation";
+      select.title = session.title || "New conversation";
+
+      const remove = document.createElement("button");
+      remove.className = "delete-chat";
+      remove.type = "button";
+      remove.dataset.deleteId = session.id;
+      remove.setAttribute("aria-label", `Delete conversation: ${session.title || "New conversation"}`);
+      remove.title = "Delete conversation";
+      remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-.8 13H6.8L6 7m4 4v5m4-5v5"/></svg>';
+
+      row.append(select, remove);
+      historyEl.append(row);
+    });
+  }
+
+  function renderMessages(session) {
+    content.innerHTML = `<div class="messages">${session.messages.map((message, index) => `
+      <article class="message ${message.role === "user" ? "user" : "assistant"}">
+        ${message.role === "assistant" ? '<div class="mini-mark" aria-hidden="true">dg</div>' : ""}
+        <div class="message-body">
+          ${message.role === "assistant" ? '<div class="message-role">Converse</div>' : ""}
+          <div class="message-text">${format(message.content)}</div>
+          ${message.role === "assistant" ? `<div class="message-actions"><button class="icon-btn copy" data-index="${index}" type="button" title="Copy response" aria-label="Copy response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button></div>` : ""}
+        </div>
+      </article>`).join("")}</div>`;
+    content.querySelectorAll(".copy").forEach(button => {
+      button.addEventListener("click", () => navigator.clipboard.writeText(session.messages[Number(button.dataset.index)].content));
+    });
+    document.querySelector("#conversation").scrollTop = document.querySelector("#conversation").scrollHeight;
+  }
+
+  function render() {
+    const session = current();
+    if (!session || !session.messages.length) renderWelcome();
+    else renderMessages(session);
+    renderHistory();
+  }
+
+  function resizeInput() {
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 180)}px`;
+  }
+
+  function closeMobileMenu() {
+    sidebar.classList.remove("open");
+    mobileOverlay.classList.remove("open");
+    document.querySelector("#mobileMenu").setAttribute("aria-expanded", "false");
+  }
+
+  document.querySelector("#newChat").addEventListener("click", () => {
+    activeId = null;
+    render();
+    closeMobileMenu();
+    input.focus();
   });
-  async function checkHealth(){try{const r=await fetch("/health");const d=await r.json();const dot=document.querySelector("#statusDot");document.querySelector("#statusText").textContent=d.status==="ready"?"Ready":d.status==="loading"?"Warming up":"Unavailable";dot.style.background=d.status==="ready"?"#a6c38d":"#e5b968";if(d.status==="loading")setTimeout(checkHealth,12000);}catch{document.querySelector("#statusText").textContent="Connecting";setTimeout(checkHealth,12000);}}
-  render();checkHealth();
+  document.querySelector("#mobileMenu").addEventListener("click", () => {
+    sidebar.classList.add("open");
+    mobileOverlay.classList.add("open");
+    document.querySelector("#mobileMenu").setAttribute("aria-expanded", "true");
+  });
+  mobileOverlay.addEventListener("click", closeMobileMenu);
+
+  historyEl.addEventListener("click", event => {
+    const removeButton = event.target.closest("[data-delete-id]");
+    if (removeButton) {
+      const id = removeButton.dataset.deleteId;
+      const session = sessions.find(item => item.id === id);
+      if (!session || !window.confirm(`Delete "${session.title || "New conversation"}"? This cannot be undone.`)) return;
+      sessions = sessions.filter(item => item.id !== id);
+      if (activeId === id) activeId = null;
+      persist();
+      render();
+      return;
+    }
+
+    const selectButton = event.target.closest("[data-chat-id]");
+    if (selectButton) {
+      activeId = selectButton.dataset.chatId;
+      render();
+      closeMobileMenu();
+    }
+  });
+
+  input.addEventListener("input", resizeInput);
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      document.querySelector("#chatForm").requestSubmit();
+    }
+  });
+
+  document.querySelector("#chatForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const text = input.value.trim();
+    if (!text || busy) return;
+
+    if (!current()) {
+      activeId = crypto.randomUUID();
+      sessions.unshift({ id: activeId, title: text.slice(0, 42), messages: [] });
+    }
+    const session = current();
+    session.messages.push({ role: "user", content: text });
+    input.value = "";
+    resizeInput();
+    busy = true;
+    send.disabled = true;
+    session.messages.push({ role: "assistant", content: "Thinking…" });
+    render();
+
+    try {
+      const response = await fetch("/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "converse-1.3",
+          messages: session.messages.slice(0, -1).map(message => ({ role: message.role, content: message.content })),
+          max_tokens: 512
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error?.message || "The model is not available yet.");
+      session.messages.at(-1).content = data.choices?.[0]?.message?.content || "I couldn't produce a response. Please try again.";
+    } catch (error) {
+      session.messages.at(-1).content = error.message;
+    } finally {
+      busy = false;
+      send.disabled = false;
+      persist();
+      render();
+      input.focus();
+    }
+  });
+
+  async function checkHealth() {
+    try {
+      const response = await fetch("/health");
+      const data = await response.json();
+      const dot = document.querySelector("#statusDot");
+      const status = data.status === "ready" ? "ready" : data.status === "loading" ? "loading" : "error";
+      dot.className = `status-dot ${status}`;
+      document.querySelector("#statusText").textContent = status === "ready" ? "Ready" : status === "loading" ? "Warming up" : "Unavailable";
+      if (status !== "ready" && status !== "error") setTimeout(checkHealth, 12000);
+      else if (status === "error") setTimeout(checkHealth, 30000);
+    } catch {
+      document.querySelector("#statusText").textContent = "Connecting";
+      setTimeout(checkHealth, 12000);
+    }
+  }
+
+  render();
+  checkHealth();
 </script>
 </body>
 </html>
