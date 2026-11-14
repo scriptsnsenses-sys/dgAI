@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f4">
+  <meta name="description" content="Live health and model loading details for dgAI Converse 1.3.">
+  <title>System status — dgAI</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --bg: #f6f6f4;
+      --surface: rgba(255,255,255,.7);
+      --surface-strong: rgba(255,255,255,.86);
+      --ink: #141416;
+      --ink-2: #3f4145;
+      --muted: #7a7c80;
+      --faint: #a1a3a6;
+      --line: rgba(20,20,25,.08);
+      --glass-border: rgba(255,255,255,.78);
+      --accent: #4f5bd5;
+      --accent-2: #8b5cf6;
+      --accent-3: #06b6d4;
+      --gradient: linear-gradient(100deg, #4f5bd5 0%, #8b5cf6 55%, #06b6d4 100%);
+      --shadow: 0 20px 60px -28px rgba(20,20,25,.2), 0 1px 2px rgba(20,20,25,.04);
+    }
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0e0f12;
+      --surface: rgba(28,29,34,.62);
+      --surface-strong: rgba(28,29,34,.82);
+      --ink: #f2f2f3;
+      --ink-2: #c6c8cd;
+      --muted: #8b8d93;
+      --faint: #6f7178;
+      --line: rgba(255,255,255,.1);
+      --glass-border: rgba(255,255,255,.14);
+      --accent: #8b93ff;
+      --accent-2: #a78bfa;
+      --accent-3: #22d3ee;
+      --gradient: linear-gradient(100deg, #8b93ff 0%, #a78bfa 55%, #22d3ee 100%);
+      --shadow: 0 22px 65px -25px rgba(0,0,0,.7), 0 1px 2px rgba(0,0,0,.5);
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.55 var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      position: fixed;
+      z-index: -1;
+      inset: 0;
+      background: radial-gradient(680px 420px at 8% -10%, color-mix(in srgb, var(--accent) 17%, transparent), transparent 66%),
+        radial-gradient(620px 420px at 98% 8%, color-mix(in srgb, var(--accent-2) 15%, transparent), transparent 68%),
+        radial-gradient(760px 480px at 50% 110%, color-mix(in srgb, var(--accent-3) 11%, transparent), transparent 66%);
+      content: "";
+      pointer-events: none;
+    }
+    a { color: inherit; text-decoration: none; }
+    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .shell { width: min(840px, calc(100% - 36px)); margin: 0 auto; padding: 26px 0 42px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: clamp(42px, 9vh, 82px); }
+    .brand { display: inline-flex; align-items: center; gap: 11px; }
+    .brand-mark {
+      display: grid;
+      width: 35px;
+      height: 35px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.6);
+      border-radius: 11px;
+      background: var(--gradient);
+      box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 24%, transparent), 0 1px 0 #ffffff66 inset;
+      color: white;
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: -.08em;
+    }
+    .brand-title { font-size: 14px; font-weight: 700; letter-spacing: -.03em; }
+    .brand-title small { display: block; margin-top: 1px; color: var(--muted); font-size: 9px; font-weight: 650; letter-spacing: .13em; text-transform: uppercase; }
+    .back-link { padding: 8px 11px; border: 1px solid var(--glass-border); border-radius: 10px; background: var(--surface); color: var(--ink-2); font-size: 12px; box-shadow: 0 1px 0 #ffffff38 inset; backdrop-filter: blur(14px); }
+    .back-link:hover { background: var(--surface-strong); }
+    .eyebrow { display: flex; align-items: center; gap: 8px; color: var(--accent); font-size: 10px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+    .eyebrow::before { width: 18px; height: 1px; background: var(--gradient); content: ""; }
+    h1 { margin: 12px 0 8px; font-size: clamp(32px, 5vw, 46px); font-weight: 620; letter-spacing: -.055em; line-height: 1.08; }
+    .intro { max-width: 570px; margin: 0; color: var(--muted); font-size: 14px; }
+    .status-card { margin-top: 30px; padding: clamp(20px, 4vw, 30px); border: 1px solid var(--glass-border); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow), 0 1px 0 #ffffff80 inset; backdrop-filter: blur(22px) saturate(155%); }
+    .status-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+    .phase-overline { margin-bottom: 5px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .phase-title { margin: 0; font-size: clamp(20px, 4vw, 27px); font-weight: 630; letter-spacing: -.04em; }
+    .state-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-strong); color: var(--ink-2); font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .state-dot { width: 7px; height: 7px; border-radius: 50%; background: #eab308; box-shadow: 0 0 0 3px color-mix(in srgb, #eab308 15%, transparent); }
+    .state-badge.ready .state-dot { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.14); }
+    .state-badge.error .state-dot { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.14); }
+    .progress-section { margin-top: 26px; }
+    .progress-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; color: var(--muted); font-size: 11px; }
+    .progress-percent { color: var(--ink-2); font-family: var(--mono); font-size: 12px; font-weight: 650; }
+    .progress-track { position: relative; height: 9px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--ink) 5%, transparent); }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--gradient); box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 36%, transparent); transition: width .6s cubic-bezier(.2,.8,.2,1); }
+    .progress-fill.indeterminate { position: absolute; width: 34%; animation: travel 1.5s ease-in-out infinite; }
+    .progress-fill.complete { width: 100%; }
+    .phase-note { min-height: 19px; margin-top: 10px; color: var(--muted); font-size: 11px; }
+    .details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 23px; }
+    .detail { min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2, rgba(255,255,255,.45)); }
+    .detail-label { margin-bottom: 5px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .detail-value { overflow: hidden; color: var(--ink-2); font-size: 12px; font-weight: 550; text-overflow: ellipsis; white-space: nowrap; }
+    .detail-value.mono { font-family: var(--mono); font-size: 10px; }
+    .error-card { display: none; margin-top: 18px; padding: 14px 15px; border: 1px solid rgba(239,68,68,.2); border-radius: 12px; background: rgba(239,68,68,.06); color: var(--ink-2); font-size: 12px; }
+    .error-card.visible { display: block; }
+    .error-card strong { display: block; margin-bottom: 3px; color: #dc4444; }
+    .footer { margin-top: 17px; color: var(--faint); font-size: 10px; text-align: center; }
+    @keyframes travel { 0% { transform: translateX(-120%); } 100% { transform: translateX(330%); } }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 24px, 840px); padding-top: 16px; }
+      .topbar { margin-bottom: 50px; }
+      .status-card { padding: 19px 16px; border-radius: 16px; }
+      .details-grid { gap: 8px; }
+      .detail { padding: 11px 10px; }
+      .detail-value { font-size: 11px; }
+      .state-badge { padding: 5px 8px; font-size: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="dgAI home">
+        <span class="brand-mark">dg</span>
+        <span class="brand-title">dgAI<small>System status</small></span>
+      </a>
+      <a class="back-link" href="/">Back to chat <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <div class="eyebrow">Live diagnostics</div>
+    <h1>Model status</h1>
+    <p class="intro">Real-time health and loading details for Converse 1.3. This page refreshes automatically while the model starts.</p>
+
+    <section class="status-card" aria-live="polite">
+      <div class="status-heading">
+        <div>
+          <div class="phase-overline" id="phaseOverline">Checking service</div>
+          <h2 class="phase-title" id="phaseTitle">Connecting…</h2>
+        </div>
+        <span class="state-badge" id="stateBadge"><span class="state-dot"></span><span id="stateText">Checking</span></span>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-meta"><span id="progressLabel">Waiting for status</span><span class="progress-percent" id="progressPercent">—</span></div>
+        <div class="progress-track" id="progressTrack" role="progressbar" aria-label="Model download progress" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-fill indeterminate" id="progressFill"></div>
+        </div>
+        <div class="phase-note" id="phaseNote">Connecting to the service…</div>
+      </div>
+
+      <div class="details-grid">
+        <div class="detail"><div class="detail-label">Model</div><div class="detail-value" id="modelName">—</div></div>
+        <div class="detail"><div class="detail-label">Service uptime</div><div class="detail-value" id="uptime">—</div></div>
+        <div class="detail"><div class="detail-label">Weights</div><div class="detail-value" id="modelFile">—</div></div>
+        <div class="detail"><div class="detail-label">Downloaded</div><div class="detail-value" id="downloaded">—</div></div>
+        <div class="detail"><div class="detail-label">Model source</div><div class="detail-value" id="modelRepo">—</div></div>
+        <div class="detail"><div class="detail-label">Revision</div><div class="detail-value mono" id="revision">—</div></div>
+        <div class="detail"><div class="detail-label">Context window</div><div class="detail-value" id="context">—</div></div>
+        <div class="detail"><div class="detail-label">CPU threads</div><div class="detail-value" id="threads">—</div></div>
+      </div>
+      <div class="error-card" id="errorCard"><strong>Model could not start</strong><span id="errorText"></span></div>
+    </section>
+    <footer class="footer">dgAI · Converse 1.3 · Status updates automatically</footer>
+  </main>
+<script>
+  const $ = selector => document.querySelector(selector);
+  const formatBytes = bytes => {
+    if (!Number.isFinite(bytes)) return "—";
+    if (bytes < 1024 ** 2) return `${bytes.toLocaleString()} B`;
+    return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  };
+  const formatDuration = seconds => {
+    if (!Number.isFinite(seconds)) return "—";
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remaining = seconds % 60;
+    return [hours && `${hours}h`, minutes && `${minutes}m`, `${remaining}s`].filter(Boolean).join(" ");
+  };
+  function display(data) {
+    const phase = data.phase || "unknown";
+    const status = data.status === "ok" ? "ready" : data.status || "unknown";
+    const percent = Number.isFinite(data.progress_percent) ? data.progress_percent : null;
+    const titles = {
+      downloading: ["Loading model weights", "The model file is being downloaded or located in the cache."],
+      initializing: ["Initializing the model", "Weights are present. The model runtime is loading them into memory; this phase has no reliable percentage."],
+      ready: ["Converse is ready", "Model loaded successfully. Chat and API requests are ready."],
+      error: ["Model startup failed", "Review the service runtime logs for the underlying startup error."]
+    };
+    const [title, note] = titles[phase] || ["Checking model", "Waiting for model status…"];
+    $("#phaseOverline").textContent = `Phase · ${phase}`;
+    $("#phaseTitle").textContent = title;
+    $("#stateText").textContent = status === "ready" ? "Operational" : status === "error" ? "Needs attention" : "Starting";
+    $("#stateBadge").className = `state-badge ${status}`;
+    $("#progressLabel").textContent = phase === "downloading" ? "Download progress" : phase === "ready" ? "Startup complete" : phase === "error" ? "Startup stopped" : "Initialization progress";
+    $("#progressPercent").textContent = percent === null ? (phase === "ready" ? "100%" : "—") : `${percent}%`;
+    $("#progressFill").className = `progress-fill${phase === "downloading" ? "" : phase === "ready" ? " complete" : phase === "error" ? "" : " indeterminate"}`;
+    $("#progressFill").style.width = phase === "downloading" ? `${percent || 0}%` : phase === "ready" ? "100%" : "";
+    $("#progressTrack").setAttribute("aria-label", phase === "downloading" ? "Model download progress" : "Model initialization status");
+    if (percent !== null) $("#progressTrack").setAttribute("aria-valuenow", percent);
+    else $("#progressTrack").removeAttribute("aria-valuenow");
+    $("#phaseNote").textContent = phase === "downloading"
+      ? `${formatBytes(data.downloaded_bytes)} of ${formatBytes(data.total_bytes)} downloaded · phase duration ${formatDuration(data.phase_seconds)}`
+      : `${note} · phase duration ${formatDuration(data.phase_seconds)}`;
+    $("#modelName").textContent = data.model || "Converse 1.3";
+    $("#uptime").textContent = formatDuration(data.uptime_seconds);
+    $("#modelFile").textContent = data.model_file || "—";
+    $("#downloaded").textContent = `${formatBytes(data.downloaded_bytes)} / ${formatBytes(data.total_bytes)}`;
+    $("#modelRepo").textContent = data.model_repo || "—";
+    $("#revision").textContent = data.revision || "—";
+    $("#context").textContent = Number.isFinite(data.context_tokens) ? `${data.context_tokens.toLocaleString()} tokens` : "—";
+    $("#threads").textContent = Number.isFinite(data.threads) ? String(data.threads) : "—";
+    $("#errorText").textContent = data.error || "Check the Render runtime logs for details.";
+    $("#errorCard").classList.toggle("visible", status === "error");
+  }
+  async function refresh() {
+    try {
+      const response = await fetch("/health?format=json", { cache: "no-store" });
+      const data = await response.json();
+      display(data);
+      if (data.status !== "ready" && data.status !== "ok" && data.status !== "error") setTimeout(refresh, 1500);
+      else if (data.status === "error") setTimeout(refresh, 10000);
+      else if (data.phase === "ready") setTimeout(refresh, 15000);
+    } catch {
+      $("#phaseOverline").textContent = "Connection";
+      $("#phaseTitle").textContent = "Health check unavailable";
+      $("#phaseNote").textContent = "Could not reach the status endpoint. Retrying…";
+      setTimeout(refresh, 3000);
+    }
+  }
+  const savedTheme = localStorage.getItem("dgai-converse-theme");
+  document.documentElement.dataset.theme = savedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  refresh();
+</script>
+</body>
+</html>

@@ -1,9 +1,12 @@
 import asyncio
 import json
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import server
+from starlette.requests import Request
 
 
 class FakeModel:
@@ -35,11 +38,54 @@ class FakeRequest:
 
 
 class ApiTests(unittest.TestCase):
+    def health_request(self, accept, query_string=b""):
+        return Request(
+            {
+                "type": "http",
+                "asgi": {"version": "3.0"},
+                "http_version": "1.1",
+                "method": "GET",
+                "scheme": "http",
+                "path": "/health",
+                "raw_path": b"/health",
+                "query_string": query_string,
+                "root_path": "",
+                "headers": [(b"accept", accept.encode())],
+                "client": ("127.0.0.1", 1234),
+                "server": ("testserver", 80),
+            }
+        )
+
     def test_health_reports_model_loading_phase(self):
-        with patch.object(server, "model_status", "loading"), patch.object(server, "model_phase", "downloading"):
-            response = server.health()
+        with (
+            patch.object(server, "model_status", "loading"),
+            patch.object(server, "model_phase", "downloading"),
+            patch.object(server, "model_bytes_downloaded", 250),
+            patch.object(server, "MODEL_SIZE_BYTES", 1000),
+        ):
+            response = server.health(self.health_request("application/json"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.body)["phase"], "downloading")
+        payload = json.loads(response.body)
+        self.assertEqual(payload["phase"], "downloading")
+        self.assertEqual(payload["progress_percent"], 25)
+        self.assertEqual(payload["downloaded_bytes"], 250)
+
+    def test_browser_health_request_returns_status_page(self):
+        response = server.health(self.health_request("text/html"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.media_type, "text/html")
+        self.assertTrue(str(response.path).endswith("static/health.html"))
+
+    def test_health_format_json_overrides_html_accept(self):
+        response = server.health(self.health_request("text/html", b"format=json"))
+        self.assertEqual(response.media_type, "application/json")
+
+    def test_partial_download_size_is_read_from_huggingface_cache(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_cache = Path(temp_dir) / "models--dgAI202--Converse-1.3-GGUF" / "blobs"
+            repo_cache.mkdir(parents=True)
+            (repo_cache / "model.incomplete").write_bytes(b"0123456789")
+            self.assertEqual(server.partial_download_bytes(repo_cache), 10)
 
     def collect(self, response):
         async def read_body():

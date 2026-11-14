@@ -17,36 +17,95 @@ MODEL_FILE = os.getenv("MODEL_FILE", "Converse-1.3.Q4_K_M.gguf")
 MODEL_REVISION = os.getenv("MODEL_REVISION", "3403f2f837186d6b755e2e71d2d9f25fff6a6f05")
 MODEL_CONTEXT = int(os.getenv("MODEL_CONTEXT", "2048"))
 MODEL_THREADS = int(os.getenv("MODEL_THREADS", "2"))
+MODEL_SIZE_BYTES = max(1, int(os.getenv("MODEL_SIZE_BYTES", "986048576")))
 MODEL_NAME = "converse-1.3"
 MAX_GENERATION_TOKENS = 2048
+PROCESS_STARTED_AT = time.time()
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("dgai")
 app = FastAPI(title="dgAI Converse 1.3", docs_url=None, redoc_url=None)
 model_lock = threading.Lock()
+health_lock = threading.Lock()
 model: Any = None
 model_status = "loading"
 model_phase = "downloading"
 model_error: str | None = None
+model_bytes_downloaded = 0
+phase_started_at = PROCESS_STARTED_AT
+
+
+def update_model_state(
+    *,
+    status: str | None = None,
+    phase: str | None = None,
+    downloaded_bytes: int | None = None,
+    error: str | None = None,
+) -> None:
+    global model_status, model_phase, model_bytes_downloaded, model_error, phase_started_at
+    with health_lock:
+        if status is not None:
+            model_status = status
+        if phase is not None:
+            if phase != model_phase:
+                phase_started_at = time.time()
+            model_phase = phase
+        if downloaded_bytes is not None:
+            model_bytes_downloaded = max(0, min(downloaded_bytes, MODEL_SIZE_BYTES))
+        if error is not None:
+            model_error = error
+
+
+def watch_model_download(hub_cache: Path, stop: threading.Event) -> None:
+    repo_cache = hub_cache / f"models--{MODEL_REPO.replace('/', '--')}" / "blobs"
+    while not stop.wait(1):
+        update_model_state(downloaded_bytes=partial_download_bytes(repo_cache))
+
+
+def partial_download_bytes(repo_cache: Path) -> int:
+    downloaded = 0
+    if repo_cache.exists():
+        for partial_file in repo_cache.glob("*.incomplete"):
+            try:
+                downloaded += partial_file.stat().st_size
+            except FileNotFoundError:
+                continue
+    return downloaded
 
 
 def load_model() -> None:
-    global model, model_status, model_phase, model_error
     try:
         from huggingface_hub import hf_hub_download
         from llama_cpp import Llama
 
         logger.info("Downloading or locating model %s/%s", MODEL_REPO, MODEL_FILE)
+        hf_home = os.getenv("HF_HOME")
+        hub_cache = (
+            Path(hf_home) / "hub"
+            if hf_home
+            else Path(os.getenv("HF_HUB_CACHE", Path.home() / ".cache" / "huggingface" / "hub"))
+        )
+        stop_download_watcher = threading.Event()
+        download_watcher = threading.Thread(
+            target=watch_model_download,
+            args=(hub_cache, stop_download_watcher),
+            name="model-download-progress",
+            daemon=True,
+        )
+        download_watcher.start()
         download_options = {
             "repo_id": MODEL_REPO,
             "filename": MODEL_FILE,
             "revision": MODEL_REVISION,
         }
-        hf_home = os.getenv("HF_HOME")
         if hf_home:
             download_options["cache_dir"] = hf_home
-        model_path = hf_hub_download(**download_options)
-        model_phase = "initializing"
+        try:
+            model_path = hf_hub_download(**download_options)
+        finally:
+            stop_download_watcher.set()
+            download_watcher.join()
+        update_model_state(downloaded_bytes=MODEL_SIZE_BYTES, phase="initializing")
         logger.info("Initializing model from %s", model_path)
         loaded_model = Llama(
             model_path=model_path,
@@ -58,14 +117,11 @@ def load_model() -> None:
         )
         with model_lock:
             model = loaded_model
-            model_status = "ready"
-            model_phase = "ready"
+        update_model_state(status="ready", phase="ready", downloaded_bytes=MODEL_SIZE_BYTES)
         logger.info("Loaded %s/%s", MODEL_REPO, MODEL_FILE)
     except Exception:
         logger.exception("Could not load the Converse 1.3 model")
-        model_error = "Model loading failed. Check the service logs and model settings."
-        model_status = "error"
-        model_phase = "error"
+        update_model_state(status="error", phase="error", error="Model loading failed. Check the service logs and model settings.")
 
 
 @app.on_event("startup")
@@ -151,16 +207,46 @@ def usage_docs() -> FileResponse:
     return FileResponse(ROOT / "static" / "docs.html")
 
 
+def health_details() -> dict[str, Any]:
+    with health_lock:
+        status = model_status
+        phase = model_phase
+        downloaded_bytes = model_bytes_downloaded
+        error = model_error
+        phase_started = phase_started_at
+    progress = 100 if phase == "ready" else min(100, round(downloaded_bytes * 100 / MODEL_SIZE_BYTES)) if phase == "downloading" else None
+    return {
+        "status": status,
+        "phase": phase,
+        "progress_percent": progress,
+        "downloaded_bytes": downloaded_bytes,
+        "total_bytes": MODEL_SIZE_BYTES,
+        "model": MODEL_NAME,
+        "model_repo": MODEL_REPO,
+        "model_file": MODEL_FILE,
+        "revision": MODEL_REVISION,
+        "context_tokens": MODEL_CONTEXT,
+        "threads": MODEL_THREADS,
+        "uptime_seconds": max(0, int(time.time() - PROCESS_STARTED_AT)),
+        "phase_seconds": max(0, int(time.time() - phase_started)),
+        "error": error,
+    }
+
+
 @app.get("/health", include_in_schema=False)
-def health() -> JSONResponse:
-    status = 200 if model_status != "error" else 503
+def health(request: Request) -> Response:
+    details = health_details()
+    status_code = 503 if details["status"] == "error" else 200
+    if request.query_params.get("format") != "json" and "text/html" in request.headers.get("accept", ""):
+        return FileResponse(
+            ROOT / "static" / "health.html",
+            status_code=status_code,
+            headers={"Cache-Control": "no-store"},
+        )
     return JSONResponse(
-        status_code=status,
-        content={
-            "status": "ok" if model_status == "ready" else model_status,
-            "phase": model_phase,
-            "model": MODEL_NAME,
-        },
+        status_code=status_code,
+        content=details,
+        headers={"Cache-Control": "no-store"},
     )
 
 
