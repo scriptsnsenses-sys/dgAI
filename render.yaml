@@ -21,7 +21,7 @@ services:
       - key: MODEL_REVISION
         value: 29efcd5a8fd2f55b727f06a8b636fb825bcbd4b3
       - key: MODEL_CONTEXT
-        value: "2048"
+        value: "32768"
       - key: MODEL_THREADS
         value: "2"
       - key: MODEL_SIZE_BYTES
