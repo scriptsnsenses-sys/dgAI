@@ -31,6 +31,18 @@ This repo has the code for our open weights which you can self host. Till now, t
 
 Check out the blog about it: https://dg-ai-blue.vercel.app/introducing-converse
 
+## Converse 1.3 service
+
+The `converse-1.3` branch includes a Render Blueprint for a chat UI and OpenAI-/Anthropic-compatible text APIs. Connect the branch to Render and deploy `render.yaml`; the service downloads a Q4_K_M GGUF community conversion from Hugging Face on first boot. Allow several minutes for the initial download and model load. Use a paid instance with at least 2 GB RAM; CPU inference can be slow, and persistent storage is recommended to avoid downloading the model again after a restart.
+
+- `/` — Converse chat
+- `/docs` — API and deployment guide
+- `POST /v1/chat/completions` — OpenAI-compatible chat completions
+- `POST /v1/messages` — Anthropic-compatible messages
+- `/health` — model loading and readiness
+
+See the [Converse 1.3 usage guide](./static/docs.html) for request examples, limits, and deployment notes. The model weights are not stored in this Git repository.
+
 ## 🤝 Contributing
 
 Interested in dgAI? You can help by:

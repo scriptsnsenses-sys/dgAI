@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10110f">
+  <meta name="description" content="A thoughtful space to think, make, and explore with Converse 1.3 by dgAI.">
+  <title>Converse — dgAI</title>
+  <style>
+    :root{color-scheme:dark;--bg:#10110f;--panel:#151714;--panel2:#1c1e1a;--line:#292b26;--muted:#92958c;--text:#f2f1e9;--gold:#e5b968;--gold2:#f0cb82;--green:#a6c38d;--sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 var(--sans);min-height:100vh}button,textarea{font:inherit}button{color:inherit}.app{min-height:100vh;display:grid;grid-template-columns:260px minmax(0,1fr)}
+    .sidebar{height:100vh;position:sticky;top:0;background:#131411;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:23px 15px 16px}
+    .brand{display:flex;align-items:center;gap:11px;padding:0 10px 24px}.brand-mark{width:33px;height:33px;border:1px solid #73603d;border-radius:11px;display:grid;place-items:center;color:var(--gold);background:linear-gradient(145deg,#282319,#191813)}.brand-mark svg{width:19px}.brand-name{font-weight:650;font-size:15px;letter-spacing:-.03em}.brand-name small{display:block;color:var(--muted);font-size:10px;font-weight:500;letter-spacing:.13em;text-transform:uppercase}
+    .new-chat{display:flex;align-items:center;justify-content:center;gap:9px;height:41px;border-radius:9px;background:var(--gold);color:#211b10;border:0;font-weight:650;cursor:pointer;transition:background .18s,transform .18s}.new-chat:hover{background:var(--gold2);transform:translateY(-1px)}.new-chat svg{width:16px}
+    .side-label{margin:29px 11px 10px;color:#777a70;font-size:10px;font-weight:650;letter-spacing:.12em;text-transform:uppercase}.history{display:flex;flex-direction:column;gap:3px}.history-item{padding:9px 10px;border:0;border-radius:7px;background:transparent;color:#c0c1ba;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.history-item:hover,.history-item.active{background:#20211d;color:#f2f1e9}.history-empty{color:#777a70;font-size:12px;padding:6px 11px}.side-bottom{margin-top:auto}.side-link{display:flex;gap:10px;align-items:center;text-decoration:none;color:#b8b9b1;padding:10px;border-radius:7px}.side-link:hover{background:#20211d;color:white}.side-link svg{width:16px;color:#92958c}.profile{border-top:1px solid var(--line);margin-top:13px;padding:16px 7px 3px;display:flex;align-items:center;gap:10px}.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#343328;color:var(--gold2);font-size:12px;font-weight:700}.profile strong{font-size:12px;display:block}.profile small{color:var(--muted);font-size:11px}
+    main{min-width:0;display:flex;flex-direction:column;height:100vh}.topbar{height:65px;border-bottom:1px solid rgba(255,255,255,.055);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,60px)}.model-select{display:flex;align-items:center;gap:8px;color:#e2e0d8;font-weight:600}.model-select .version{font-size:11px;color:#85877f;font-weight:500}.status{display:flex;align-items:center;gap:8px;color:#adb0a7;font-size:12px}.status-dot{width:7px;height:7px;border-radius:50%;background:#a6c38d;box-shadow:0 0 11px #a6c38d70}
+    .conversation{flex:1;overflow-y:auto;scrollbar-color:#353730 transparent}.content{max-width:780px;width:calc(100% - 48px);margin:0 auto}.welcome{min-height:100%;display:flex;flex-direction:column;justify-content:center;padding:35px 0 70px}.eyebrow{display:flex;align-items:center;gap:9px;color:var(--gold);font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase}.eyebrow:before{content:"";width:21px;height:1px;background:var(--gold)}h1{font-size:clamp(34px,5vw,51px);line-height:1.07;letter-spacing:-.055em;font-weight:550;margin:21px 0 13px}.welcome-copy{font-size:15px;color:#a8aaa2;max-width:490px;margin:0 0 37px}.prompt-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.prompt{min-height:85px;text-align:left;background:#171814;border:1px solid #292b25;border-radius:11px;padding:15px 16px;cursor:pointer;transition:.18s}.prompt:hover{border-color:#6b5938;background:#1b1a15;transform:translateY(-2px)}.prompt strong{font-size:13px;display:block;font-weight:550;margin-bottom:5px}.prompt span{font-size:12px;color:#85877e}
+    .messages{padding:43px 0 35px;display:flex;flex-direction:column;gap:29px}.message{display:flex;gap:13px;align-items:flex-start}.message .avatar{flex:0 0 29px;width:29px;height:29px;font-size:10px}.message.assistant .avatar{border-radius:9px;background:#282319;color:var(--gold)}.message-body{min-width:0;flex:1;padding-top:3px}.message-role{font-size:11px;color:#85877f;font-weight:600;margin-bottom:7px}.message-text{font-size:14px;line-height:1.75;color:#e8e7df;overflow-wrap:anywhere;white-space:pre-wrap}.message.user .message-text{color:#c9cac2}.message-text code{background:#272822;padding:2px 5px;border-radius:4px;color:#e5c785;font-family:ui-monospace,monospace;font-size:.92em}.message-text strong{color:#f5e1b5}.message-actions{display:flex;gap:6px;margin-top:8px}.icon-btn{width:29px;height:27px;border:0;background:transparent;border-radius:6px;color:#777a70;cursor:pointer}.icon-btn:hover{color:#e4e3db;background:#23241f}.error-note{color:#e49b85}
+    .composer-wrap{padding:12px 24px 17px;background:linear-gradient(transparent,var(--bg) 20%)}.composer-area{max-width:780px;margin:0 auto}.composer{background:#191a16;border:1px solid #33352e;border-radius:13px;padding:12px 12px 10px;box-shadow:0 9px 35px #00000028;transition:border-color .2s}.composer:focus-within{border-color:#655537}.composer textarea{width:100%;min-height:28px;max-height:180px;resize:none;border:0;outline:0;background:transparent;color:var(--text);padding:3px 4px;font-size:14px;line-height:1.55}.composer textarea::placeholder{color:#777a70}.composer-bottom{display:flex;align-items:center;justify-content:space-between;padding:4px 1px 0}.composer-hint{font-size:10px;color:#75776f}.send{height:34px;width:36px;border:0;border-radius:8px;display:grid;place-items:center;background:var(--gold);color:#211b10;cursor:pointer}.send:hover{background:var(--gold2)}.send:disabled{opacity:.42;cursor:default}.send svg{width:17px}.fineprint{text-align:center;color:#696c64;font-size:10px;margin-top:10px}.mobile-menu{display:none}
+    @media(max-width:760px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{height:58px;padding:0 18px}.mobile-menu{display:grid;place-items:center;border:0;background:none;color:#aaa;width:30px}.mobile-menu svg{width:20px}.status{font-size:0}.status-dot{width:8px;height:8px}.content{width:calc(100% - 36px)}.welcome{padding:36px 0 50px;justify-content:center}.prompt-grid{grid-template-columns:1fr}.prompt{min-height:72px}.welcome-copy{font-size:14px}.composer-wrap{padding:10px 13px 13px}.messages{padding-top:27px}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2.8 14.7 9l6.5 3-6.5 3-2.7 6.2L9.3 15 2.8 12l6.5-3L12 2.8Z"/><path d="m18.7 2 .8 2.3 2.3.8-2.3.8-.8 2.3-.8-2.3-2.3-.8 2.3-.8.8-2.3Z"/></svg></div><div class="brand-name">dgAI<small>Converse 1.3</small></div></div>
+      <button class="new-chat" id="newChat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>New conversation</button>
+      <div class="side-label">Your conversations</div><div class="history" id="history"></div>
+      <div class="side-bottom"><a class="side-link" href="/docs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3.8h9l5 5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4.8a1 1 0 0 1 1-1Z"/><path d="M14 4v5h5M8 13h8M8 17h8"/></svg>API &amp; usage docs</a>
+        <div class="profile"><div class="avatar">D</div><div><strong>Converse 1.3</strong><small>dgAI · public beta</small></div></div>
+      </div>
+    </aside>
+    <main>
+      <header class="topbar"><button class="mobile-menu" id="mobileNew" aria-label="New conversation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button><div class="model-select">Converse <span class="version">1.3</span></div><div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Checking model</span></div></header>
+      <section class="conversation" id="conversation" aria-live="polite"><div class="content" id="content"></div></section>
+      <div class="composer-wrap"><div class="composer-area"><form class="composer" id="chatForm"><textarea id="input" rows="1" placeholder="Ask Converse anything..." aria-label="Message Converse"></textarea><div class="composer-bottom"><span class="composer-hint">Enter to send · Shift + Enter for a new line</span><button class="send" id="send" type="submit" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></form><div class="fineprint">Converse can make mistakes. Check important information.</div></div></div>
+    </main>
+  </div>
+<script>
+  const content = document.querySelector("#content");
+  const input = document.querySelector("#input");
+  const send = document.querySelector("#send");
+  const historyEl = document.querySelector("#history");
+  const STORAGE_KEY = "dgai-converse-sessions-v1";
+  let sessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  let activeId = null;
+  let busy = false;
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const format = (s) => esc(s).replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  function persist(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(sessions)); renderHistory(); }
+  function current(){ return sessions.find(s=>s.id===activeId); }
+  function welcome(){
+    content.innerHTML = `<div class="welcome"><div class="eyebrow">A little more human</div><h1>Good ideas start<br>with a conversation.</h1><p class="welcome-copy">I'm Converse, dgAI's open conversational model. Bring a question, a half-formed thought, or something you want to make.</p><div class="prompt-grid"><button class="prompt" data-prompt="Help me turn a rough idea into a clear, practical plan."><strong>Make a plan</strong><span>Turn a rough idea into thoughtful next steps</span></button><button class="prompt" data-prompt="Explain a tricky concept clearly, with a useful example."><strong>Understand something</strong><span>Get a clear explanation without the jargon</span></button><button class="prompt" data-prompt="Help me write a warm, concise message about..."><strong>Find the right words</strong><span>Shape a message, story, or first draft</span></button><button class="prompt" data-prompt="I want to build something useful. Help me brainstorm ideas."><strong>Explore an idea</strong><span>Brainstorm possibilities and see where they lead</span></button></div></div>`;
+    content.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{input.value=b.dataset.prompt;input.focus();resizeInput();});
+  }
+  function renderHistory(){
+    historyEl.innerHTML = sessions.length ? sessions.slice(0,12).map(s=>`<button class="history-item ${s.id===activeId?"active":""}" data-id="${esc(s.id)}">${esc(s.title||"New conversation")}</button>`).join("") : '<div class="history-empty">Your chats will show up here.</div>';
+    historyEl.querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>{activeId=b.dataset.id;render();});
+  }
+  function render(){
+    const session=current();
+    if(!session||!session.messages.length){welcome();renderHistory();return;}
+    content.innerHTML = `<div class="messages">${session.messages.map((m,i)=>`<article class="message ${m.role}"><div class="avatar">${m.role==="user"?"Y":'<svg width="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3 2.4 5.8L20 12l-5.6 2.8L12 21l-2.4-6.2L4 12l5.6-3.2L12 3Z"/></svg>'}</div><div class="message-body"><div class="message-role">${m.role==="user"?"You":"Converse"}</div><div class="message-text">${format(m.content)}</div>${m.role==="assistant"?`<div class="message-actions"><button class="icon-btn copy" data-index="${i}" title="Copy response" aria-label="Copy response">⧉</button></div>`:""}</div></article>`).join("")}</div>`;
+    content.querySelectorAll(".copy").forEach(b=>b.onclick=()=>navigator.clipboard.writeText(session.messages[Number(b.dataset.index)].content));
+    renderHistory();
+    document.querySelector("#conversation").scrollTop=document.querySelector("#conversation").scrollHeight;
+  }
+  function resizeInput(){input.style.height="auto";input.style.height=Math.min(input.scrollHeight,180)+"px";}
+  document.querySelector("#newChat").onclick=document.querySelector("#mobileNew").onclick=()=>{activeId=null;render();input.focus();};
+  input.addEventListener("input",resizeInput);
+  input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();document.querySelector("#chatForm").requestSubmit();}});
+  document.querySelector("#chatForm").addEventListener("submit",async e=>{
+    e.preventDefault();const text=input.value.trim();if(!text||busy)return;
+    if(!current()){activeId=crypto.randomUUID();sessions.unshift({id:activeId,title:text.slice(0,42),messages:[]});}
+    const session=current();session.messages.push({role:"user",content:text});input.value="";resizeInput();busy=true;send.disabled=true;
+    session.messages.push({role:"assistant",content:""});const reply=session.messages.at(-1);render();reply.content="Thinking…";render();
+    try{
+      const response=await fetch("/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"converse-1.3",messages:session.messages.slice(0,-1).map(m=>({role:m.role,content:m.content})),max_tokens:512})});
+      const data=await response.json();if(!response.ok)throw new Error(data.error?.message||"The model is not available yet.");
+      reply.content=data.choices?.[0]?.message?.content||"I couldn't produce a response. Please try again.";
+    }catch(error){reply.content=error.message;reply.error=true;}
+    finally{busy=false;send.disabled=false;persist();render();input.focus();}
+  });
+  async function checkHealth(){try{const r=await fetch("/health");const d=await r.json();const dot=document.querySelector("#statusDot");document.querySelector("#statusText").textContent=d.status==="ready"?"Ready":d.status==="loading"?"Warming up":"Unavailable";dot.style.background=d.status==="ready"?"#a6c38d":"#e5b968";if(d.status==="loading")setTimeout(checkHealth,12000);}catch{document.querySelector("#statusText").textContent="Connecting";setTimeout(checkHealth,12000);}}
+  render();checkHealth();
+</script>
+</body>
+</html>

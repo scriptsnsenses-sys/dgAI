@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: dgai-converse-1-3
+    runtime: python
+    plan: standard
+    buildCommand: CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install --upgrade pip && CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: MODEL_REPO
+        value: mradermacher/Converse-1.3-GGUF
+      - key: MODEL_FILE
+        value: Converse-1.3.Q4_K_M.gguf
+      - key: MODEL_REVISION
+        value: 3403f2f837186d6b755e2e71d2d9f25fff6a6f05
+      - key: MODEL_CONTEXT
+        value: "4096"
+      - key: MODEL_THREADS
+        value: "2"

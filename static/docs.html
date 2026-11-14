@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10110f">
+  <title>API &amp; usage — Converse 1.3</title>
+  <style>
+    :root{color-scheme:dark;--bg:#10110f;--panel:#171814;--line:#2b2d27;--text:#f0efe8;--muted:#a2a49b;--gold:#e5b968;--green:#a6c38d;--sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.7 var(--sans)}a{color:var(--gold);text-decoration:none}a:hover{text-decoration:underline}.top{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 max(calc((100vw - 1060px)/2),24px)}.brand{font-weight:650;letter-spacing:-.03em}.brand span{color:var(--gold)}.home{font-size:12px;color:#c4c5bd}.layout{max-width:1060px;margin:auto;padding:62px 24px 90px;display:grid;grid-template-columns:205px minmax(0,1fr);gap:65px}.toc{position:sticky;top:30px;align-self:start;display:grid;gap:11px;font-size:12px}.toc a{color:#999b92}.toc a:hover{color:var(--gold)}.kicker{color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:.15em;font-weight:650}h1{font-size:clamp(36px,5vw,50px);line-height:1.08;letter-spacing:-.055em;font-weight:550;margin:15px 0}h2{font-size:21px;letter-spacing:-.025em;margin:48px 0 9px;font-weight:580}p{color:var(--muted);margin:8px 0 15px}.lead{font-size:16px;max-width:660px}.card{border:1px solid var(--line);background:var(--panel);border-radius:11px;padding:18px 20px;margin:22px 0}.card strong{display:block;margin-bottom:4px}.badge{display:inline-flex;color:var(--green);font-size:11px;border:1px solid #44523b;border-radius:20px;padding:2px 9px;margin-left:8px}.route{margin:17px 0 22px}.route-head{display:flex;gap:9px;align-items:center;font-size:13px;font-weight:600}.method{background:#293524;color:#b9d1a2;padding:2px 8px;border-radius:4px;font-size:10px;letter-spacing:.04em}.method.post{color:#edcd8c;background:#372f20}.route p{font-size:13px;margin:6px 0 10px}pre{overflow:auto;background:#171814;border:1px solid #2c2e28;border-radius:9px;padding:15px 17px;font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;color:#d4d4cb}code{color:#e4c47f;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em}.note{border-left:2px solid var(--gold);padding:3px 0 3px 14px}.footer{border-top:1px solid var(--line);padding-top:20px;font-size:12px;color:#85877f;margin-top:48px}
+    @media(max-width:720px){.layout{grid-template-columns:1fr;padding-top:38px;gap:25px}.toc{position:static;display:flex;flex-wrap:wrap;gap:9px 17px;border-bottom:1px solid var(--line);padding-bottom:17px}.top{padding:0 18px}}
+  </style>
+</head>
+<body>
+  <header class="top"><a class="brand" href="/">dgAI <span>·</span> Converse 1.3</a><a class="home" href="/">← Back to chat</a></header>
+  <div class="layout">
+    <nav class="toc" aria-label="On this page"><a href="#overview">Overview</a><a href="#quickstart">Quick start</a><a href="#openai">OpenAI-compatible API</a><a href="#anthropic">Anthropic-compatible API</a><a href="#parameters">Parameters &amp; limits</a><a href="#deployment">Deployment</a></nav>
+    <article>
+      <div class="kicker">Developer guide · Public beta</div><h1>Bring Converse<br>into your workflow.</h1><p class="lead">One self-hosted model, two familiar API shapes. Point your app at this service and build with Converse 1.3.</p>
+      <div class="card" id="overview"><strong>Base URL</strong><code id="baseUrl"></code><p style="margin:5px 0 0">The service loads a quantized Converse 1.3 model from Hugging Face when it starts. The first boot downloads the model; wait for <code>/health</code> to report <code>ready</code>.</p></div>
+      <h2 id="quickstart">Quick start</h2><p>Both endpoints accept JSON over HTTPS. No API key is required by default; configure a gateway or network-level access control before exposing a production endpoint publicly.</p>
+      <pre>curl <span id="curlHost"></span>/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "converse-1.3",
+    "messages": [
+      {"role": "user", "content": "Help me think this through."}
+    ],
+    "temperature": 0.7,
+    "max_tokens": 512
+  }'</pre>
+      <h2 id="openai">OpenAI-compatible chat completions</h2>
+      <div class="route"><div class="route-head"><span class="method post">POST</span><code>/v1/chat/completions</code></div><p>Accepts system, developer, user, and assistant text messages. Returns a chat completion object with <code>choices</code> and token usage. Set <code>stream: true</code> for server-sent events.</p></div>
+      <pre>{
+  "id": "chatcmpl-…",
+  "object": "chat.completion",
+  "model": "converse-1.3",
+  "choices": [{
+    "index": 0,
+    "message": {"role": "assistant", "content": "…"},
+    "finish_reason": "stop"
+  }],
+  "usage": {"prompt_tokens": 18, "completion_tokens": 42, "total_tokens": 60}
+}</pre>
+      <h2 id="anthropic">Anthropic-compatible messages</h2>
+      <div class="route"><div class="route-head"><span class="method post">POST</span><code>/v1/messages</code></div><p>Accepts a top-level <code>system</code> prompt and text messages with user or assistant roles. Responses use the Anthropic message envelope and text content blocks. Set <code>stream: true</code> for message events over SSE.</p></div>
+      <pre>curl <span class="host"></span>/v1/messages \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "converse-1.3",
+    "max_tokens": 512,
+    "system": "You are a thoughtful writing partner.",
+    "messages": [{"role": "user", "content": "Give me a fresh start."}]
+  }'</pre>
+      <h2 id="parameters">Parameters &amp; limits</h2>
+      <div class="route"><div class="route-head"><span class="method">TEXT ONLY</span><span>Input and output</span></div><p>Text messages only; image and audio input, tool calls, and multimodal content are not supported. Content arrays may contain text blocks.</p></div>
+      <div class="route"><div class="route-head"><span class="method">1–2,048</span><span>Maximum generated tokens</span></div><p>Defaults: temperature <code>0.7</code>, top_p <code>0.8</code>, max_tokens <code>512</code>. Context is configured to 4,096 tokens for deployment stability.</p></div>
+      <div class="route"><div class="route-head"><span class="method">GET</span><code>/health</code></div><p>Returns <code>loading</code>, <code>ready</code>, or <code>error</code>. Completion endpoints respond with HTTP 503 while the model downloads or loads.</p></div>
+      <h2 id="deployment">Deployment</h2><p>Connect this branch to Render as a Blueprint using the included <code>render.yaml</code>. The service downloads a roughly 986 MB Q4_K_M GGUF from <code>mradermacher/Converse-1.3-GGUF</code> on first boot and caches it on the instance disk. Use a paid instance with at least 2 GB RAM; the quantized model is community-converted and runs on CPU, so generation speed depends on the selected instance.</p>
+      <p class="note">Render instance disks are ephemeral unless you attach a persistent disk. Without one, a restart may download the model again. Consider a persistent disk or baking the weights into your own image for production.</p>
+      <div class="footer">Converse 1.3 · dgAI · Open weights, public beta</div>
+    </article>
+  </div>
+<script>
+  const host=location.origin;document.querySelector("#baseUrl").textContent=host;document.querySelector("#curlHost").textContent=host;document.querySelectorAll(".host").forEach(e=>e.textContent=host);
+</script>
+</body>
+</html>
