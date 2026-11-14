@@ -12,12 +12,12 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 
 ROOT = Path(__file__).parent
-MODEL_REPO = os.getenv("MODEL_REPO", "mradermacher/Converse-1.3-GGUF")
-MODEL_FILE = os.getenv("MODEL_FILE", "Converse-1.3.Q4_K_M.gguf")
-MODEL_REVISION = os.getenv("MODEL_REVISION", "3403f2f837186d6b755e2e71d2d9f25fff6a6f05")
+MODEL_REPO = os.getenv("MODEL_REPO", "dgAI202/Converse-1.3")
+MODEL_FILE = os.getenv("MODEL_FILE", "model.safetensors")
+MODEL_REVISION = os.getenv("MODEL_REVISION", "29efcd5a8fd2f55b727f06a8b636fb825bcbd4b3")
 MODEL_CONTEXT = int(os.getenv("MODEL_CONTEXT", "2048"))
 MODEL_THREADS = int(os.getenv("MODEL_THREADS", "2"))
-MODEL_SIZE_BYTES = max(1, int(os.getenv("MODEL_SIZE_BYTES", "986048576")))
+MODEL_SIZE_BYTES = max(1, int(os.getenv("MODEL_SIZE_BYTES", "3098907121")))
 MODEL_NAME = "converse-1.3"
 MAX_GENERATION_TOKENS = 2048
 PROCESS_STARTED_AT = time.time()
@@ -73,17 +73,144 @@ def partial_download_bytes(repo_cache: Path) -> int:
     return downloaded
 
 
+class TransformersChatModel:
+    def __init__(self, runtime: Any, tokenizer: Any, torch_module: Any) -> None:
+        self.runtime = runtime
+        self.tokenizer = tokenizer
+        self.torch = torch_module
+
+    def _generation_inputs(
+        self,
+        messages: list[dict[str, str]],
+        max_tokens: int,
+        temperature: float,
+        top_p: float,
+    ) -> tuple[dict[str, Any], int, dict[str, Any]]:
+        input_ids = self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            return_tensors="pt",
+        )
+        if hasattr(input_ids, "items"):
+            inputs = dict(input_ids.items())
+            input_ids = inputs["input_ids"]
+        else:
+            inputs = {"input_ids": input_ids}
+        prompt_tokens = int(input_ids.shape[-1])
+        if prompt_tokens + max_tokens > MODEL_CONTEXT:
+            raise ValueError(
+                f"Prompt ({prompt_tokens} tokens) and max_tokens ({max_tokens}) exceed the "
+                f"configured context limit of {MODEL_CONTEXT} tokens."
+            )
+        options = {
+            "max_new_tokens": max_tokens,
+            "do_sample": temperature > 0,
+            "top_p": top_p,
+            "top_k": 20,
+            "repetition_penalty": 1.1,
+        }
+        if temperature > 0:
+            options["temperature"] = temperature
+        return inputs, prompt_tokens, options
+
+    def create_chat_completion(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        stream: bool = False,
+        max_tokens: int = 512,
+        temperature: float = 0.7,
+        top_p: float = 0.8,
+        **_: Any,
+    ) -> Any:
+        inputs, prompt_tokens, options = self._generation_inputs(
+            messages,
+            max_tokens,
+            temperature,
+            top_p,
+        )
+        if stream:
+            return self._stream_completion(inputs, prompt_tokens, options, max_tokens)
+
+        with self.torch.inference_mode():
+            output = self.runtime.generate(**inputs, **options)
+        generated_ids = output[0][prompt_tokens:]
+        content = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
+        completion_tokens = int(generated_ids.shape[-1])
+        return {
+            "id": f"chatcmpl-{uuid.uuid4().hex}",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": content},
+                    "finish_reason": "length" if completion_tokens >= max_tokens else "stop",
+                }
+            ],
+            "usage": {
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": prompt_tokens + completion_tokens,
+            },
+        }
+
+    def _stream_completion(
+        self,
+        inputs: dict[str, Any],
+        prompt_tokens: int,
+        options: dict[str, Any],
+        max_tokens: int,
+    ) -> Iterator[dict[str, Any]]:
+        from transformers import TextIteratorStreamer
+
+        streamer = TextIteratorStreamer(
+            self.tokenizer,
+            skip_prompt=True,
+            skip_special_tokens=True,
+        )
+        result: list[Any] = []
+        failure: list[BaseException] = []
+
+        def generate() -> None:
+            try:
+                with self.torch.inference_mode():
+                    result.append(self.runtime.generate(**inputs, streamer=streamer, **options))
+            except BaseException as exc:
+                failure.append(exc)
+                streamer.end()
+
+        generation_thread = threading.Thread(target=generate, name="model-generation", daemon=True)
+        generation_thread.start()
+        for text in streamer:
+            if text:
+                yield {"choices": [{"index": 0, "delta": {"content": text}, "finish_reason": None}]}
+        generation_thread.join()
+        if failure:
+            raise failure[0]
+        generated_tokens = int(result[0][0][prompt_tokens:].shape[-1]) if result else 0
+        yield {
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {},
+                    "finish_reason": "length" if generated_tokens >= max_tokens else "stop",
+                }
+            ]
+        }
+
+
 def load_model() -> None:
+    global model
     try:
-        from huggingface_hub import hf_hub_download
-        from llama_cpp import Llama
+        import torch
+        from huggingface_hub import snapshot_download
+        from transformers import AutoModelForCausalLM, AutoTokenizer
 
         logger.info("Downloading or locating model %s/%s", MODEL_REPO, MODEL_FILE)
+        torch.set_num_threads(MODEL_THREADS)
         hf_home = os.getenv("HF_HOME")
-        hub_cache = (
-            Path(hf_home) / "hub"
-            if hf_home
-            else Path(os.getenv("HF_HUB_CACHE", Path.home() / ".cache" / "huggingface" / "hub"))
+        hub_cache = Path(hf_home) / "hub" if hf_home else Path(
+            os.getenv("HF_HUB_CACHE", Path.home() / ".cache" / "huggingface" / "hub")
         )
         stop_download_watcher = threading.Event()
         download_watcher = threading.Thread(
@@ -93,28 +220,27 @@ def load_model() -> None:
             daemon=True,
         )
         download_watcher.start()
-        download_options = {
-            "repo_id": MODEL_REPO,
-            "filename": MODEL_FILE,
-            "revision": MODEL_REVISION,
-        }
-        if hf_home:
-            download_options["cache_dir"] = hf_home
         try:
-            model_path = hf_hub_download(**download_options)
+            model_path = snapshot_download(
+                repo_id=MODEL_REPO,
+                revision=MODEL_REVISION,
+                cache_dir=hub_cache,
+            )
         finally:
             stop_download_watcher.set()
             download_watcher.join()
         update_model_state(downloaded_bytes=MODEL_SIZE_BYTES, phase="initializing")
         logger.info("Initializing model from %s", model_path)
-        loaded_model = Llama(
-            model_path=model_path,
-            n_ctx=MODEL_CONTEXT,
-            n_threads=MODEL_THREADS,
-            n_batch=64,
-            n_gpu_layers=0,
-            verbose=False,
+        tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+        runtime = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            torch_dtype=torch.bfloat16,
+            low_cpu_mem_usage=True,
+            device_map="cpu",
+            local_files_only=True,
         )
+        runtime.eval()
+        loaded_model = TransformersChatModel(runtime, tokenizer, torch)
         with model_lock:
             model = loaded_model
         update_model_state(status="ready", phase="ready", downloaded_bytes=MODEL_SIZE_BYTES)
@@ -285,6 +411,8 @@ async def chat_completions(request: Request) -> Response:
                 "usage": result.get("usage", {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}),
             }
         )
+    except ValueError as exc:
+        return api_error(str(exc), 400)
     except Exception:
         logger.exception("OpenAI-compatible completion failed")
         return api_error("The model could not generate a completion.", 500, "server_error")
@@ -371,6 +499,8 @@ async def anthropic_messages(request: Request) -> Response:
                 },
             }
         )
+    except ValueError as exc:
+        return anthropic_error(str(exc), 400)
     except Exception:
         logger.exception("Anthropic-compatible message generation failed")
         return anthropic_error("The model could not generate a response.", 500, "api_error")

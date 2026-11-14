@@ -1,5 +1,8 @@
 fastapi==0.115.12
+accelerate==1.15.0
 gunicorn==23.0.0
-huggingface-hub==0.30.2
-llama-cpp-python==0.3.16
+huggingface-hub==1.31.0
+safetensors==0.8.0
+transformers==5.23.0
+torch==2.15.0
 uvicorn[standard]==0.34.2

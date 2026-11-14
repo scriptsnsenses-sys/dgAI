@@ -1,8 +1,12 @@
 import asyncio
 import json
+import os
+import queue
 import tempfile
 import unittest
 from pathlib import Path
+from contextlib import nullcontext
+from types import ModuleType, SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import server
@@ -37,7 +41,121 @@ class FakeRequest:
         self.json = AsyncMock(return_value=body)
 
 
+class FakeTensor:
+    def __init__(self, token_count):
+        self.shape = (1, token_count)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self
+        start = key.start or 0
+        return FakeTensor(max(0, self.shape[-1] - start))
+
+
+class FakeStreamer:
+    def __init__(self, *args, **kwargs):
+        self.values = queue.Queue()
+
+    def __iter__(self):
+        while True:
+            value = self.values.get()
+            if value is None:
+                return
+            yield value
+
+    def put_text(self, text):
+        self.values.put(text)
+
+    def end(self):
+        self.values.put(None)
+
+
+class FakeTokenizer:
+    def apply_chat_template(self, *args, **kwargs):
+        return FakeTensor(4)
+
+    def decode(self, tokens, **kwargs):
+        return "Test response"
+
+
+class FakeRuntime:
+    def generate(self, *, streamer=None, **kwargs):
+        if streamer:
+            streamer.put_text("Test ")
+            streamer.put_text("response")
+            streamer.end()
+        return FakeTensor(7)
+
+
 class ApiTests(unittest.TestCase):
+    def fake_torch(self):
+        return SimpleNamespace(inference_mode=nullcontext)
+
+    def test_transformers_adapter_generates_completion_and_usage(self):
+        adapter = server.TransformersChatModel(FakeRuntime(), FakeTokenizer(), self.fake_torch())
+        response = adapter.create_chat_completion(
+            [{"role": "user", "content": "Hi"}],
+            max_tokens=8,
+            temperature=0,
+            top_p=0.8,
+        )
+        self.assertEqual(response["choices"][0]["message"]["content"], "Test response")
+        self.assertEqual(response["usage"]["prompt_tokens"], 4)
+        self.assertEqual(response["usage"]["completion_tokens"], 3)
+        self.assertEqual(response["choices"][0]["finish_reason"], "stop")
+
+    def test_transformers_adapter_enforces_configured_context(self):
+        adapter = server.TransformersChatModel(FakeRuntime(), FakeTokenizer(), self.fake_torch())
+        with patch.object(server, "MODEL_CONTEXT", 10):
+            with self.assertRaisesRegex(ValueError, "configured context limit of 10"):
+                adapter.create_chat_completion(
+                    [{"role": "user", "content": "Hi"}],
+                    max_tokens=8,
+                    temperature=0,
+                    top_p=0.8,
+                )
+
+    def test_transformers_adapter_streams_text_and_finish_reason(self):
+        transformers = ModuleType("transformers")
+        transformers.TextIteratorStreamer = FakeStreamer
+        adapter = server.TransformersChatModel(FakeRuntime(), FakeTokenizer(), self.fake_torch())
+        with patch.dict("sys.modules", {"transformers": transformers}):
+            chunks = list(
+                adapter.create_chat_completion(
+                    [{"role": "user", "content": "Hi"}],
+                    stream=True,
+                    max_tokens=8,
+                    temperature=0,
+                    top_p=0.8,
+                )
+            )
+        self.assertEqual(chunks[0]["choices"][0]["delta"]["content"], "Test ")
+        self.assertEqual(chunks[-1]["choices"][0]["finish_reason"], "stop")
+
+    def test_model_loader_uses_official_transformers_repository(self):
+        runtime = SimpleNamespace(eval=lambda: None)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with (
+                patch.dict(os.environ, {"HF_HOME": temp_dir}),
+                patch.object(server, "MODEL_REPO", "dgAI202/Converse-1.3"),
+                patch.object(server, "MODEL_REVISION", "official-revision"),
+                patch.object(server, "model_status", "loading"),
+                patch("huggingface_hub.snapshot_download", return_value=temp_dir) as download,
+                patch("transformers.AutoTokenizer.from_pretrained", return_value=FakeTokenizer()) as tokenizer,
+                patch("transformers.AutoModelForCausalLM.from_pretrained", return_value=runtime) as model_loader,
+            ):
+                server.load_model()
+                download.assert_called_once_with(
+                    repo_id="dgAI202/Converse-1.3",
+                    revision="official-revision",
+                    cache_dir=Path(temp_dir) / "hub",
+                )
+                tokenizer.assert_called_once_with(temp_dir, local_files_only=True)
+                self.assertEqual(model_loader.call_args.args, (temp_dir,))
+                self.assertEqual(model_loader.call_args.kwargs["device_map"], "cpu")
+                self.assertEqual(server.model_status, "ready")
+                self.assertIsInstance(server.model, server.TransformersChatModel)
+
     def health_request(self, accept, query_string=b""):
         return Request(
             {
@@ -82,7 +200,7 @@ class ApiTests(unittest.TestCase):
 
     def test_partial_download_size_is_read_from_huggingface_cache(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            repo_cache = Path(temp_dir) / "models--dgAI202--Converse-1.3-GGUF" / "blobs"
+            repo_cache = Path(temp_dir) / "models--dgAI--Converse-1.3" / "blobs"
             repo_cache.mkdir(parents=True)
             (repo_cache / "model.incomplete").write_bytes(b"0123456789")
             self.assertEqual(server.partial_download_bytes(repo_cache), 10)
