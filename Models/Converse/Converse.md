@@ -21,7 +21,8 @@ The `converse-1.3` branch provides a Render Blueprint for the Converse chat app 
 
 1. In Render, choose **New → Blueprint**, connect `scriptsnsenses-sys/dgAI`, and select the `converse-1.3` branch. Do not select Docker; the branch deploys with Python using the root-level `render.yaml`, which installs and runs Gunicorn with an ASGI worker.
 2. Choose a region close to your users, or the same region as services that need private networking. The Blueprint does not pin a region.
-3. Deploy and wait for the initial download (about 986 MB) and model load. Check `/health` until it reports `ready`. If you already created a manual Web Service, set its start command to `gunicorn server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 120` and redeploy.
+3. To preserve model weights between deploys, add a **2 GB persistent disk** in Render's service **Disk** settings at `/var/data`, then set `HF_HOME=/var/data/huggingface`. The disk is a separate resource and may add a charge. Its first boot still downloads about 986 MB, so a sub-minute first download cannot be guaranteed.
+4. Deploy; `/health` shows `downloading`, then `initializing`, before ready. The default context is 2,048 tokens to reduce memory use and initialization time. If you already created a manual Web Service, set `MODEL_CONTEXT=2048`, `MODEL_THREADS=1`, configure `HF_HOME` as above, and use start command `gunicorn server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 120`; then redeploy.
 
 The Blueprint uses a paid Standard instance with at least 2 GB RAM. The service runs inference on CPU, so generation may be slow. Model weights are downloaded from Hugging Face at startup and are not stored in Git; because Render disks are ephemeral by default, attach persistent storage if you want to avoid downloading them again after a restart.
 

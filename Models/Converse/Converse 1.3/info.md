@@ -50,9 +50,10 @@ To deploy the chat app and APIs, use the `converse-1.3` branch of this repositor
 
 1. In Render, choose **New → Blueprint**, connect `scriptsnsenses-sys/dgAI`, and select `converse-1.3`. Use the included root-level `render.yaml`; do not choose Docker. The Blueprint installs Gunicorn and runs it with Uvicorn's ASGI worker.
 2. Choose a region close to your users or colocated with services that need private networking. No region is pinned in the Blueprint.
-3. Deploy. The service downloads an approximately 986 MB Q4_K_M GGUF community conversion from Hugging Face on first boot; wait for `/health` to report `ready`. For an existing manual Web Service, set the start command to `gunicorn server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 120` and redeploy.
+3. To preserve the model cache between deploys, attach a **2 GB persistent disk** under the service's **Disk** settings with mount path `/var/data`, and set the service environment variable `HF_HOME=/var/data/huggingface`. The disk is a separate Render resource and may incur an extra charge. The initial download of the roughly 986 MB model still takes however long the connection requires, so a sub-minute first download is not guaranteed.
+4. Deploy. `/health` reports `downloading` and then `initializing`; the service is ready after initialization. The default context is 2,048 tokens to reduce memory use and speed model initialization. For an existing manual Web Service, set `MODEL_CONTEXT=2048`, `MODEL_THREADS=1`, configure the disk and `HF_HOME` above, and use start command `gunicorn server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 120`; then redeploy.
 
-The Blueprint configures a paid Standard instance (at least 2 GB RAM) and CPU inference. Expect slower generation than on a GPU. The weights are external to this Git repository. Render's default disk is ephemeral, so attach persistent storage to avoid downloading the model again after restarts.
+The Blueprint configures a paid Standard instance (at least 2 GB RAM) and CPU inference. Expect slower generation than on a GPU. The weights are external to this Git repository. Render's default disk is ephemeral, so attach persistent storage as described above to avoid downloading the model again after restarts.
 
 The service provides the chat UI at `/`, usage documentation at `/docs`, OpenAI-compatible `POST /v1/chat/completions`, and Anthropic-compatible `POST /v1/messages`.
 

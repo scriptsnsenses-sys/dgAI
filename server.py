@@ -15,8 +15,8 @@ ROOT = Path(__file__).parent
 MODEL_REPO = os.getenv("MODEL_REPO", "mradermacher/Converse-1.3-GGUF")
 MODEL_FILE = os.getenv("MODEL_FILE", "Converse-1.3.Q4_K_M.gguf")
 MODEL_REVISION = os.getenv("MODEL_REVISION", "3403f2f837186d6b755e2e71d2d9f25fff6a6f05")
-MODEL_CONTEXT = int(os.getenv("MODEL_CONTEXT", "4096"))
-MODEL_THREADS = int(os.getenv("MODEL_THREADS", str(max(1, (os.cpu_count() or 2) - 1))))
+MODEL_CONTEXT = int(os.getenv("MODEL_CONTEXT", "2048"))
+MODEL_THREADS = int(os.getenv("MODEL_THREADS", "1"))
 MODEL_NAME = "converse-1.3"
 MAX_GENERATION_TOKENS = 2048
 
@@ -26,36 +26,46 @@ app = FastAPI(title="dgAI Converse 1.3", docs_url=None, redoc_url=None)
 model_lock = threading.Lock()
 model: Any = None
 model_status = "loading"
+model_phase = "downloading"
 model_error: str | None = None
 
 
 def load_model() -> None:
-    global model, model_status, model_error
+    global model, model_status, model_phase, model_error
     try:
         from huggingface_hub import hf_hub_download
         from llama_cpp import Llama
 
-        model_path = hf_hub_download(
-            repo_id=MODEL_REPO,
-            filename=MODEL_FILE,
-            revision=MODEL_REVISION,
-        )
+        logger.info("Downloading or locating model %s/%s", MODEL_REPO, MODEL_FILE)
+        download_options = {
+            "repo_id": MODEL_REPO,
+            "filename": MODEL_FILE,
+            "revision": MODEL_REVISION,
+        }
+        hf_home = os.getenv("HF_HOME")
+        if hf_home:
+            download_options["cache_dir"] = hf_home
+        model_path = hf_hub_download(**download_options)
+        model_phase = "initializing"
+        logger.info("Initializing model from %s", model_path)
         loaded_model = Llama(
             model_path=model_path,
             n_ctx=MODEL_CONTEXT,
             n_threads=MODEL_THREADS,
-            n_batch=256,
+            n_batch=128,
             n_gpu_layers=0,
             verbose=False,
         )
         with model_lock:
             model = loaded_model
             model_status = "ready"
+            model_phase = "ready"
         logger.info("Loaded %s/%s", MODEL_REPO, MODEL_FILE)
     except Exception:
         logger.exception("Could not load the Converse 1.3 model")
         model_error = "Model loading failed. Check the service logs and model settings."
         model_status = "error"
+        model_phase = "error"
 
 
 @app.on_event("startup")
@@ -146,7 +156,11 @@ def health() -> JSONResponse:
     status = 200 if model_status != "error" else 503
     return JSONResponse(
         status_code=status,
-        content={"status": "ok" if model_status == "ready" else model_status, "model": MODEL_NAME},
+        content={
+            "status": "ok" if model_status == "ready" else model_status,
+            "phase": model_phase,
+            "model": MODEL_NAME,
+        },
     )
 
 

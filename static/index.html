@@ -389,7 +389,8 @@
       const dot = document.querySelector("#statusDot");
       const status = data.status === "ready" ? "ready" : data.status === "loading" ? "loading" : "error";
       dot.className = `status-dot ${status}`;
-      document.querySelector("#statusText").textContent = status === "ready" ? "Ready" : status === "loading" ? "Warming up" : "Unavailable";
+      const phaseLabel = data.phase === "downloading" ? "Downloading model" : "Loading model";
+      document.querySelector("#statusText").textContent = status === "ready" ? "Ready" : status === "loading" ? phaseLabel : "Unavailable";
       if (status !== "ready" && status !== "error") setTimeout(checkHealth, 12000);
       else if (status === "error") setTimeout(checkHealth, 30000);
     } catch {

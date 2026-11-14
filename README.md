@@ -40,11 +40,12 @@ The `converse-1.3` branch includes a Render Blueprint for a chat UI and OpenAI-/
 1. In Render, choose **New → Blueprint** (not Docker), connect this repository, and select the `converse-1.3` branch.
 2. Render reads the root-level `render.yaml` and creates the service with its Python runtime, build/start commands, and Standard plan. Keep the root directory empty if configuring a Web Service manually.
 3. Choose a region near your users, or the same region as services that need to communicate privately. The Blueprint does not pin a region.
-4. Deploy and wait for the first boot to download the approximately 986 MB Q4_K_M GGUF community conversion from Hugging Face and load it. Check `/health` until it reports `ready`.
+4. For repeat deploys to avoid the model download, add a **2 GB persistent disk** in the service's **Disk** settings with mount path `/var/data`, then set `HF_HOME=/var/data/huggingface` in the service's environment. This disk is a separate Render resource and may incur an additional charge. The first boot still has to download the approximately 986 MB Q4_K_M model; a sub-minute first download cannot be guaranteed.
+5. Deploy and check `/health`. It reports whether the service is `downloading` or `initializing`; once the persistent cache is populated, later starts only need to initialize the model. The default context is reduced to 2,048 tokens to lower memory use and speed initialization.
 
-If configuring a Web Service manually instead, select **Python**, not Docker. Use build command `CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install --upgrade pip && CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install -r requirements.txt` and start command `gunicorn server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 120`. The requirements install Gunicorn and its Uvicorn ASGI worker.
+If configuring a Web Service manually instead, select **Python**, not Docker. Use build command `CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install --upgrade pip && CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install -r requirements.txt` and start command `gunicorn server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 120`. Set `MODEL_CONTEXT=2048`, `MODEL_THREADS=1`, and (if you attached the persistent disk) `HF_HOME=/var/data/huggingface`. The requirements install Gunicorn and its Uvicorn ASGI worker.
 
-Use a paid instance with at least 2 GB RAM. Inference runs on CPU and may be slow. Render's instance disk is ephemeral unless you attach persistent storage, so a restart may require downloading the model again.
+Use a paid instance with at least 2 GB RAM. Inference runs on CPU and may be slow. Without a persistent disk configured as above, a restart or deploy downloads the model again.
 
 - `/` — Converse chat
 - `/docs` — API and deployment guide

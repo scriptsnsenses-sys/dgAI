@@ -35,6 +35,12 @@ class FakeRequest:
 
 
 class ApiTests(unittest.TestCase):
+    def test_health_reports_model_loading_phase(self):
+        with patch.object(server, "model_status", "loading"), patch.object(server, "model_phase", "downloading"):
+            response = server.health()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.body)["phase"], "downloading")
+
     def collect(self, response):
         async def read_body():
             chunks = []
