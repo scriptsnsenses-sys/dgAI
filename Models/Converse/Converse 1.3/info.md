@@ -44,6 +44,18 @@ model = AutoModelForCausalLM.from_pretrained(model_id)
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 ```
 
+## Deploy the Converse 1.3 service
+
+To deploy the chat app and APIs, use the `converse-1.3` branch of this repository:
+
+1. In Render, choose **New → Blueprint**, connect `scriptsnsenses-sys/dgAI`, and select `converse-1.3`. Use the included root-level `render.yaml`; do not choose Docker.
+2. Choose a region close to your users or colocated with services that need private networking. No region is pinned in the Blueprint.
+3. Deploy. The service downloads an approximately 986 MB Q4_K_M GGUF community conversion from Hugging Face on first boot; wait for `/health` to report `ready`.
+
+The Blueprint configures a paid Standard instance (at least 2 GB RAM) and CPU inference. Expect slower generation than on a GPU. The weights are external to this Git repository. Render's default disk is ephemeral, so attach persistent storage to avoid downloading the model again after restarts.
+
+The service provides the chat UI at `/`, usage documentation at `/docs`, OpenAI-compatible `POST /v1/chat/completions`, and Anthropic-compatible `POST /v1/messages`.
+
 ## License
 
 MIT — see repository LICENSE.

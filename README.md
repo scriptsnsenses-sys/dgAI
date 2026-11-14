@@ -33,7 +33,18 @@ Check out the blog about it: https://dg-ai-blue.vercel.app/introducing-converse
 
 ## Converse 1.3 service
 
-The `converse-1.3` branch includes a Render Blueprint for a chat UI and OpenAI-/Anthropic-compatible text APIs. Connect the branch to Render and deploy `render.yaml`; the service downloads a Q4_K_M GGUF community conversion from Hugging Face on first boot. Allow several minutes for the initial download and model load. Use a paid instance with at least 2 GB RAM; CPU inference can be slow, and persistent storage is recommended to avoid downloading the model again after a restart.
+The `converse-1.3` branch includes a Render Blueprint for a chat UI and OpenAI-/Anthropic-compatible text APIs.
+
+### Deploy to Render
+
+1. In Render, choose **New → Blueprint** (not Docker), connect this repository, and select the `converse-1.3` branch.
+2. Render reads the root-level `render.yaml` and creates the service with its Python runtime, build/start commands, and Standard plan. Keep the root directory empty if configuring a Web Service manually.
+3. Choose a region near your users, or the same region as services that need to communicate privately. The Blueprint does not pin a region.
+4. Deploy and wait for the first boot to download the approximately 986 MB Q4_K_M GGUF community conversion from Hugging Face and load it. Check `/health` until it reports `ready`.
+
+If configuring a Web Service manually instead, select **Python**, not Docker. Use build command `CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install --upgrade pip && CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install -r requirements.txt` and start command `uvicorn server:app --host 0.0.0.0 --port $PORT`.
+
+Use a paid instance with at least 2 GB RAM. Inference runs on CPU and may be slow. Render's instance disk is ephemeral unless you attach persistent storage, so a restart may require downloading the model again.
 
 - `/` — Converse chat
 - `/docs` — API and deployment guide
