@@ -42,7 +42,7 @@ The `converse-1.3` branch includes a Render Blueprint for a chat UI and OpenAI-/
 3. Choose a region near your users, or the same region as services that need to communicate privately. The Blueprint does not pin a region.
 4. Deploy and wait for the first boot to download the approximately 986 MB Q4_K_M GGUF community conversion from Hugging Face and load it. Check `/health` until it reports `ready`.
 
-If configuring a Web Service manually instead, select **Python**, not Docker. Use build command `CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install --upgrade pip && CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install -r requirements.txt` and start command `uvicorn server:app --host 0.0.0.0 --port $PORT`.
+If configuring a Web Service manually instead, select **Python**, not Docker. Use build command `CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install --upgrade pip && CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install -r requirements.txt` and start command `gunicorn server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 120`. The requirements install Gunicorn and its Uvicorn ASGI worker.
 
 Use a paid instance with at least 2 GB RAM. Inference runs on CPU and may be slow. Render's instance disk is ephemeral unless you attach persistent storage, so a restart may require downloading the model again.
 
