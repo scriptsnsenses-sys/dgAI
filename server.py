@@ -16,7 +16,7 @@ MODEL_REPO = os.getenv("MODEL_REPO", "mradermacher/Converse-1.3-GGUF")
 MODEL_FILE = os.getenv("MODEL_FILE", "Converse-1.3.Q4_K_M.gguf")
 MODEL_REVISION = os.getenv("MODEL_REVISION", "3403f2f837186d6b755e2e71d2d9f25fff6a6f05")
 MODEL_CONTEXT = int(os.getenv("MODEL_CONTEXT", "2048"))
-MODEL_THREADS = int(os.getenv("MODEL_THREADS", "1"))
+MODEL_THREADS = int(os.getenv("MODEL_THREADS", "2"))
 MODEL_NAME = "converse-1.3"
 MAX_GENERATION_TOKENS = 2048
 
@@ -52,7 +52,7 @@ def load_model() -> None:
             model_path=model_path,
             n_ctx=MODEL_CONTEXT,
             n_threads=MODEL_THREADS,
-            n_batch=128,
+            n_batch=64,
             n_gpu_layers=0,
             verbose=False,
         )

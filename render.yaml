@@ -2,11 +2,15 @@ services:
   - type: web
     name: dgai-converse-1-3
     runtime: python
-    plan: standard
+    plan: 2c-4g
     buildCommand: CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install --upgrade pip && CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install -r requirements.txt
     startCommand: gunicorn server:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 120
     healthCheckPath: /health
     autoDeploy: true
+    disk:
+      name: model-cache
+      mountPath: /var/data
+      sizeGB: 3
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
@@ -19,4 +23,6 @@ services:
       - key: MODEL_CONTEXT
         value: "2048"
       - key: MODEL_THREADS
-        value: "1"
+        value: "2"
+      - key: HF_HOME
+        value: /var/data/huggingface
